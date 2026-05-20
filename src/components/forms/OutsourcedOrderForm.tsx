@@ -47,6 +47,8 @@ export default function OutsourcedOrderForm({ initial, onSubmit, loading }: Prop
     });
   };
 
+  const profit = Number(form.sellingPrice) - Number(form.cost);
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -69,15 +71,15 @@ export default function OutsourcedOrderForm({ initial, onSubmit, loading }: Prop
         <Input label="تاريخ التسليم المتوقع" type="date" value={form.expectedDeliveryDate} onChange={e => set('expectedDeliveryDate', e.target.value)} />
         <Input label="تاريخ التسليم الفعلي" type="date" value={form.actualDeliveryDate} onChange={e => set('actualDeliveryDate', e.target.value)} />
       </div>
-      <div className="border-t border-slate-100 pt-5">
-        <h3 className="text-slate-900 font-medium mb-4">المالية</h3>
+      <div className="border-t border-slate-800 pt-5">
+        <h3 className="text-slate-300 font-medium mb-4">المالية</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Input label="التكلفة (ر.س)" type="number" min="0" step="0.01" value={form.cost} onChange={e => set('cost', e.target.value)} />
           <Input label="سعر البيع (ر.س)" type="number" min="0" step="0.01" value={form.sellingPrice} onChange={e => set('sellingPrice', e.target.value)} />
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-slate-700">الربح (ر.س)</label>
-            <div className={`bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 font-mono text-sm ${Number(form.sellingPrice) - Number(form.cost) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {(Number(form.sellingPrice) - Number(form.cost)).toFixed(2)}
+            <label className="text-sm font-medium text-slate-300">الربح (ر.س)</label>
+            <div className={`border rounded-xl px-3 py-2 font-mono text-sm ${profit >= 0 ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}>
+              {profit.toFixed(2)}
             </div>
           </div>
         </div>

@@ -82,6 +82,16 @@ export default function PrintingOrderForm({ initial, onSubmit, loading }: Props)
     return Object.keys(e).length === 0;
   };
 
+  const calcEnd = (): { endDate: string; endTime: string } | null => {
+    if (!sched.plannedStartDate || !sched.printStartTime || !sched.printDurationHours) return null;
+    const start = new Date(`${sched.plannedStartDate}T${sched.printStartTime}`);
+    const end = new Date(start.getTime() + Number(sched.printDurationHours) * 3600000);
+    return {
+      endDate: end.toISOString().split('T')[0],
+      endTime: end.toTimeString().slice(0, 5),
+    };
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
@@ -103,19 +113,8 @@ export default function PrintingOrderForm({ initial, onSubmit, loading }: Props)
     });
   };
 
-  // Calculate end date/time from start + duration
-  const calcEnd = (): { endDate: string; endTime: string } | null => {
-    if (!sched.plannedStartDate || !sched.printStartTime || !sched.printDurationHours) return null;
-    const start = new Date(`${sched.plannedStartDate}T${sched.printStartTime}`);
-    const end = new Date(start.getTime() + Number(sched.printDurationHours) * 3600000);
-    return {
-      endDate: end.toISOString().split('T')[0],
-      endTime: end.toTimeString().slice(0, 5),
-    };
-  };
   const endCalc = calcEnd();
 
-  // Conflict detection
   useEffect(() => {
     if (!form.machineId || !sched.plannedStartDate || !sched.printStartTime || !sched.printDurationHours) {
       setConflictOrder(null);
@@ -147,9 +146,9 @@ export default function PrintingOrderForm({ initial, onSubmit, loading }: Props)
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {missingGrams && (
-        <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3">
-          <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0" />
-          <p className="text-amber-700 text-sm">تحذير: لم يتم تحديد الجرامات. يُرجى إدخال الجرامات أو تفعيل تقسيم الجرامات.</p>
+        <div className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-3">
+          <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+          <p className="text-amber-300 text-sm">تحذير: لم يتم تحديد الجرامات. يُرجى إدخال الجرامات أو تفعيل تقسيم الجرامات.</p>
         </div>
       )}
 
@@ -181,15 +180,15 @@ export default function PrintingOrderForm({ initial, onSubmit, loading }: Props)
       </div>
 
       {/* Machine & Material */}
-      <div className="border-t border-slate-100 pt-5">
-        <h3 className="text-slate-900 font-medium mb-4">تفاصيل الطباعة</h3>
+      <div className="border-t border-slate-800 pt-5">
+        <h3 className="text-slate-300 font-medium mb-4">تفاصيل الطباعة</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="text-sm font-medium text-slate-700 block mb-1.5">الماكينة</label>
+            <label className="text-sm font-medium text-slate-300 block mb-1.5">الماكينة</label>
             <select
               value={form.machineId}
               onChange={e => handleMachineChange(e.target.value)}
-              className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-700 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
+              className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
             >
               <option value="">اختر الماكينة...</option>
               {machines.map(m => <option key={m.id} value={m.id}>{m.name} ({m.type})</option>)}
@@ -202,84 +201,59 @@ export default function PrintingOrderForm({ initial, onSubmit, loading }: Props)
       </div>
 
       {/* Scheduling */}
-      <div className="border-t border-slate-100 pt-5">
+      <div className="border-t border-slate-800 pt-5">
         <div className="flex items-center gap-2 mb-4">
-          <Clock className="w-4 h-4 text-blue-500" />
-          <h3 className="text-slate-900 font-medium">جدول الطباعة</h3>
-          <span className="text-slate-400 text-xs">(اختياري)</span>
+          <Clock className="w-4 h-4 text-blue-400" />
+          <h3 className="text-slate-300 font-medium">جدول الطباعة</h3>
+          <span className="text-slate-600 text-xs">(اختياري)</span>
         </div>
         {conflictOrder && (
-          <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-4">
-            <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
-            <p className="text-red-600 text-sm">
+          <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 mb-4">
+            <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+            <p className="text-red-300 text-sm">
               تعارض: الماكينة محجوزة بطلب &ldquo;{conflictOrder.orderName}&rdquo; في هذا الوقت
             </p>
           </div>
         )}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Input
-            label="تاريخ بدء الطباعة"
-            type="date"
-            value={sched.plannedStartDate}
-            onChange={e => setSched(s => ({ ...s, plannedStartDate: e.target.value }))}
-          />
-          <Input
-            label="وقت بدء الطباعة"
-            type="time"
-            value={sched.printStartTime}
-            onChange={e => setSched(s => ({ ...s, printStartTime: e.target.value }))}
-          />
-          <Input
-            label="مدة الطباعة (ساعات)"
-            type="number"
-            min="0"
-            step="0.5"
-            value={sched.printDurationHours}
-            onChange={e => setSched(s => ({ ...s, printDurationHours: Number(e.target.value) }))}
-          />
+          <Input label="تاريخ بدء الطباعة" type="date" value={sched.plannedStartDate} onChange={e => setSched(s => ({ ...s, plannedStartDate: e.target.value }))} />
+          <Input label="وقت بدء الطباعة" type="time" value={sched.printStartTime} onChange={e => setSched(s => ({ ...s, printStartTime: e.target.value }))} />
+          <Input label="مدة الطباعة (ساعات)" type="number" min="0" step="0.5" value={sched.printDurationHours} onChange={e => setSched(s => ({ ...s, printDurationHours: Number(e.target.value) }))} />
         </div>
         {endCalc && (
-          <div className="mt-3 flex items-center gap-2 text-xs text-slate-500 bg-slate-50 rounded-lg px-3 py-2">
-            <Clock className="w-3 h-3 text-blue-500" />
-            <span>وقت الانتهاء المتوقع: <span className="text-blue-600 font-medium">{endCalc.endDate} {endCalc.endTime}</span></span>
+          <div className="mt-3 flex items-center gap-2 text-xs text-slate-500 bg-slate-800/50 border border-slate-700/50 rounded-xl px-3 py-2">
+            <Clock className="w-3 h-3 text-blue-400" />
+            <span>وقت الانتهاء المتوقع: <span className="text-blue-400 font-medium">{endCalc.endDate} {endCalc.endTime}</span></span>
           </div>
         )}
       </div>
 
       {/* Grams */}
-      <div className="border-t border-slate-100 pt-5">
+      <div className="border-t border-slate-800 pt-5">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-slate-900 font-medium">الجرامات</h3>
+          <h3 className="text-slate-300 font-medium">الجرامات</h3>
           <label className="flex items-center gap-2 cursor-pointer select-none">
             <div
               onClick={() => set('splitGrams', !form.splitGrams)}
-              className={`w-10 h-5 rounded-full transition-colors ${form.splitGrams ? 'bg-blue-500' : 'bg-slate-200'} relative`}
+              className={`w-10 h-5 rounded-full transition-colors ${form.splitGrams ? 'bg-blue-600' : 'bg-slate-700'} relative`}
             >
               <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-transform shadow-sm ${form.splitGrams ? 'translate-x-5' : 'translate-x-0.5'}`} />
             </div>
-            <span className="text-sm text-slate-600">تقسيم الجرامات</span>
+            <span className="text-sm text-slate-400">تقسيم الجرامات</span>
           </label>
         </div>
 
         {!form.splitGrams ? (
-          <Input
-            label="الجرامات"
-            type="number"
-            min="0"
-            step="0.01"
-            value={form.grams}
-            onChange={e => set('grams', e.target.value)}
-            hint="أدخل إجمالي الجرامات المستخدمة"
-          />
+          <Input label="الجرامات" type="number" min="0" step="0.01" value={form.grams} onChange={e => set('grams', e.target.value)} hint="أدخل إجمالي الجرامات المستخدمة" />
         ) : (
           <div className="space-y-3">
             <p className="text-slate-500 text-sm">أضف توزيع الجرامات لكل جهة وماكينة:</p>
             {form.gramAllocations.map((alloc, i) => (
-              <div key={i} className="flex gap-3 items-end bg-slate-50 border border-slate-100 rounded-lg p-3">
+              <div key={i} className="flex gap-3 items-end bg-slate-800/50 border border-slate-700/50 rounded-xl p-3">
                 <select
                   value={alloc.businessLabel}
                   onChange={e => updateAlloc(i, 'businessLabel', e.target.value)}
-                  className="bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-700 text-sm flex-1 focus:outline-none focus:border-blue-500"
+                  className="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 text-sm flex-1 focus:outline-none focus:border-blue-500"
                 >
                   <option value="RoboFab">RoboFab</option>
                   <option value="TechNova">Tech Nova</option>
@@ -287,7 +261,7 @@ export default function PrintingOrderForm({ initial, onSubmit, loading }: Props)
                 <select
                   value={alloc.machineId}
                   onChange={e => updateAlloc(i, 'machineId', e.target.value)}
-                  className="bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-700 text-sm flex-1 focus:outline-none focus:border-blue-500"
+                  className="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 text-sm flex-1 focus:outline-none focus:border-blue-500"
                 >
                   <option value="">الماكينة...</option>
                   {machines.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
@@ -299,9 +273,9 @@ export default function PrintingOrderForm({ initial, onSubmit, loading }: Props)
                   value={alloc.grams}
                   onChange={e => updateAlloc(i, 'grams', Number(e.target.value))}
                   placeholder="جرامات"
-                  className="w-28 bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-700 text-sm focus:outline-none focus:border-blue-500"
+                  className="w-28 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 text-sm focus:outline-none focus:border-blue-500"
                 />
-                <button type="button" onClick={() => removeAlloc(i)} className="text-red-500 hover:text-red-600 transition-colors p-2">
+                <button type="button" onClick={() => removeAlloc(i)} className="text-red-500 hover:text-red-400 transition-colors p-2">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
@@ -314,14 +288,14 @@ export default function PrintingOrderForm({ initial, onSubmit, loading }: Props)
       </div>
 
       {/* Financial */}
-      <div className="border-t border-slate-100 pt-5">
-        <h3 className="text-slate-900 font-medium mb-4">المالية</h3>
+      <div className="border-t border-slate-800 pt-5">
+        <h3 className="text-slate-300 font-medium mb-4">المالية</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Input label="السعر (ر.س)" type="number" min="0" step="0.01" value={form.price} onChange={e => set('price', e.target.value)} />
           <Input label="المبلغ المدفوع (ر.س)" type="number" min="0" step="0.01" value={form.paidAmount} onChange={e => set('paidAmount', e.target.value)} />
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-slate-700">المبلغ المتبقي (ر.س)</label>
-            <div className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-blue-600 font-mono text-sm">
+            <label className="text-sm font-medium text-slate-300">المبلغ المتبقي (ر.س)</label>
+            <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl px-3 py-2 text-blue-400 font-mono text-sm">
               {Math.max(0, Number(form.price) - Number(form.paidAmount)).toFixed(2)}
             </div>
           </div>
@@ -329,11 +303,10 @@ export default function PrintingOrderForm({ initial, onSubmit, loading }: Props)
       </div>
 
       {/* Notes */}
-      <div className="border-t border-slate-100 pt-5">
+      <div className="border-t border-slate-800 pt-5">
         <Textarea label="ملاحظات" value={form.notes} onChange={e => set('notes', e.target.value)} rows={3} />
       </div>
 
-      {/* Submit */}
       <div className="flex gap-3 pt-2">
         <Button type="submit" loading={loading} className="flex-1 justify-center">
           {initial?.orderName ? 'حفظ التغييرات' : 'إنشاء الطلب'}

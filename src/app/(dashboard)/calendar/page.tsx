@@ -9,10 +9,10 @@ import { useTranslation } from '@/hooks/useTranslation';
 import type { Order, OrderSection } from '@/types';
 
 const SECTION_CONFIG: Record<OrderSection, { color: string; icon: typeof Printer }> = {
-  printing3d:        { color: 'bg-blue-50 border-blue-200 text-blue-700', icon: Printer },
-  design:            { color: 'bg-purple-50 border-purple-200 text-purple-700', icon: Pen },
-  pcbPrinting:       { color: 'bg-green-50 border-green-200 text-green-700', icon: CircuitBoard },
-  outsourcedPrinting:{ color: 'bg-amber-50 border-amber-200 text-amber-700', icon: Truck },
+  printing3d:         { color: 'bg-blue-500/10 border-blue-500/20 text-blue-400',   icon: Printer },
+  design:             { color: 'bg-violet-500/10 border-violet-500/20 text-violet-400', icon: Pen },
+  pcbPrinting:        { color: 'bg-green-500/10 border-green-500/20 text-green-400',  icon: CircuitBoard },
+  outsourcedPrinting: { color: 'bg-amber-500/10 border-amber-500/20 text-amber-400',  icon: Truck },
 };
 
 const DAY_NAMES_AR = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
@@ -31,13 +31,9 @@ function isSameDay(date: Date, dateStr?: string): boolean {
   return d.getFullYear() === date.getFullYear() && d.getMonth() === date.getMonth() && d.getDate() === date.getDate();
 }
 
-function formatDayHeader(date: Date): string {
-  return date.toLocaleDateString('ar-SA', { day: 'numeric', month: 'short' });
-}
-
-interface DayOrders {
-  deliveries: Order[];
-  printStart: Order[];
+function sectionHref(o: Order): string {
+  const map: Record<OrderSection, string> = { printing3d: 'printing', design: 'design', pcbPrinting: 'pcb', outsourcedPrinting: 'outsourced' };
+  return `/${map[o.section]}/${o.id}`;
 }
 
 export default function CalendarPage() {
@@ -47,26 +43,13 @@ export default function CalendarPage() {
 
   const days = useMemo(() => {
     const start = getWeekStart(weekOffset);
-    return Array.from({ length: 7 }, (_, i) => {
-      const d = new Date(start);
-      d.setDate(start.getDate() + i);
-      return d;
-    });
+    return Array.from({ length: 7 }, (_, i) => { const d = new Date(start); d.setDate(start.getDate() + i); return d; });
   }, [weekOffset]);
 
-  const dayOrders = useMemo((): DayOrders[] => {
-    return days.map(day => ({
-      deliveries: orders.filter(o =>
-        isSameDay(day, o.deliveryDate) &&
-        o.status !== 'cancelled'
-      ),
-      printStart: orders.filter(o =>
-        o.section === 'printing3d' &&
-        isSameDay(day, o.plannedStartDate) &&
-        o.status !== 'cancelled'
-      ),
-    }));
-  }, [orders, days]);
+  const dayOrders = useMemo(() => days.map(day => ({
+    deliveries: orders.filter(o => isSameDay(day, o.deliveryDate) && o.status !== 'cancelled'),
+    printStart: orders.filter(o => o.section === 'printing3d' && isSameDay(day, o.plannedStartDate) && o.status !== 'cancelled'),
+  })), [orders, days]);
 
   const todayIdx = days.findIndex(d => {
     const today = new Date();
@@ -78,34 +61,25 @@ export default function CalendarPage() {
 
   return (
     <DashboardLayout title={t('cal.title')}>
-      <div className="space-y-4">
+      <div className="space-y-4 animate-fade-in">
         {/* Navigation */}
         <div className="flex items-center justify-between">
-          <button
-            onClick={() => setWeekOffset(w => w - 1)}
-            className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 transition-colors text-sm"
-          >
+          <button onClick={() => setWeekOffset(w => w - 1)} className="flex items-center gap-1.5 text-slate-500 hover:text-slate-200 transition-colors text-sm">
             <Prev className="w-4 h-4" /> {t('cal.prevWeek')}
           </button>
           <div className="flex items-center gap-3">
-            <h2 className="text-slate-900 font-semibold">
+            <h2 className="text-slate-300 font-semibold text-sm">
               {days[0].toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', { day: 'numeric', month: 'short' })}
               {' — '}
               {days[6].toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
             </h2>
             {weekOffset !== 0 && (
-              <button
-                onClick={() => setWeekOffset(0)}
-                className="text-xs text-blue-600 hover:text-blue-700 border border-blue-200 bg-blue-50 px-2 py-0.5 rounded-lg transition-colors"
-              >
+              <button onClick={() => setWeekOffset(0)} className="text-xs text-blue-400 hover:text-blue-300 border border-blue-500/20 bg-blue-500/10 px-2 py-0.5 rounded-lg transition-colors">
                 {t('cal.today')}
               </button>
             )}
           </div>
-          <button
-            onClick={() => setWeekOffset(w => w + 1)}
-            className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 transition-colors text-sm"
-          >
+          <button onClick={() => setWeekOffset(w => w + 1)} className="flex items-center gap-1.5 text-slate-500 hover:text-slate-200 transition-colors text-sm">
             {t('cal.nextWeek')} <Next className="w-4 h-4" />
           </button>
         </div>
@@ -119,62 +93,54 @@ export default function CalendarPage() {
               const hasOrders = deliveries.length > 0 || printStart.length > 0;
 
               return (
-                <div
-                  key={i}
-                  className={`rounded-xl border flex flex-col ${
-                    isToday
-                      ? 'border-blue-300 bg-blue-50'
-                      : hasOrders
-                      ? 'border-slate-200 bg-white shadow-sm'
-                      : 'border-slate-100 bg-slate-50'
-                  }`}
-                >
-                  {/* Day header */}
-                  <div className={`px-2 py-2 border-b text-center ${isToday ? 'border-blue-200' : 'border-slate-100'}`}>
-                    <div className={`text-xs font-medium ${isToday ? 'text-blue-600' : 'text-slate-500'}`}>
+                <div key={i} className={`rounded-xl border flex flex-col transition-all ${
+                  isToday
+                    ? 'border-blue-500/30 bg-blue-500/5 shadow-lg shadow-blue-500/5'
+                    : hasOrders
+                    ? 'border-slate-700 bg-slate-900'
+                    : 'border-slate-800 bg-slate-900/60'
+                }`}>
+                  <div className={`px-2 py-2 border-b text-center ${isToday ? 'border-blue-500/20' : 'border-slate-800'}`}>
+                    <div className={`text-xs font-medium ${isToday ? 'text-blue-400' : 'text-slate-600'}`}>
                       {dayNames[day.getDay()]}
                     </div>
-                    <div className={`text-lg font-bold mt-0.5 ${isToday ? 'text-blue-700' : 'text-slate-800'}`}>
+                    <div className={`text-lg font-bold mt-0.5 ${isToday ? 'text-blue-300' : 'text-slate-300'}`}>
                       {day.getDate()}
                     </div>
-                    <div className="text-xs text-slate-400">{formatDayHeader(day)}</div>
+                    <div className="text-xs text-slate-600">
+                      {day.toLocaleDateString(isRTL ? 'ar-SA' : 'en-US', { month: 'short' })}
+                    </div>
                   </div>
 
-                  {/* Orders */}
                   <div className="flex-1 p-1.5 space-y-1 overflow-y-auto">
                     {deliveries.map(o => {
                       const cfg = SECTION_CONFIG[o.section];
                       const Icon = cfg.icon;
                       return (
-                        <Link key={`d-${o.id}`} href={`/${o.section === 'printing3d' ? 'printing' : o.section === 'pcbPrinting' ? 'pcb' : o.section === 'outsourcedPrinting' ? 'outsourced' : 'design'}/${o.id}`}>
-                          <div className={`text-xs rounded-lg px-1.5 py-1 border truncate flex items-center gap-1 hover:opacity-80 transition-opacity ${cfg.color}`}>
+                        <Link key={`d-${o.id}`} href={sectionHref(o)}>
+                          <div className={`text-xs rounded-lg px-1.5 py-1 border truncate flex items-center gap-1 hover:opacity-70 transition-opacity ${cfg.color}`}>
                             <Icon className="w-2.5 h-2.5 flex-shrink-0" />
                             <span className="truncate">{o.orderName}</span>
                           </div>
                         </Link>
                       );
                     })}
-
                     {printStart.map(o => (
                       <Link key={`p-${o.id}`} href={`/printing/${o.id}`}>
-                        <div className="text-xs rounded-lg px-1.5 py-1 border border-slate-200 bg-slate-100 text-slate-500 truncate flex items-center gap-1 hover:opacity-80 transition-opacity">
+                        <div className="text-xs rounded-lg px-1.5 py-1 border border-slate-700 bg-slate-800 text-slate-500 truncate flex items-center gap-1 hover:opacity-70 transition-opacity">
                           <Printer className="w-2.5 h-2.5 flex-shrink-0" />
                           <span className="truncate">▶ {o.orderName}</span>
                         </div>
                       </Link>
                     ))}
-
                     {!hasOrders && (
-                      <p className="text-slate-300 text-xs text-center pt-4">{t('cal.noOrders')}</p>
+                      <p className="text-slate-800 text-xs text-center pt-4">{t('cal.noOrders')}</p>
                     )}
                   </div>
 
-                  {/* Count badge */}
                   {hasOrders && (
                     <div className="px-2 pb-1.5 text-center">
-                      <span className="text-xs text-slate-400">
-                        {deliveries.length + printStart.length}
-                      </span>
+                      <span className="text-xs text-slate-600">{deliveries.length + printStart.length}</span>
                     </div>
                   )}
                 </div>
@@ -185,12 +151,12 @@ export default function CalendarPage() {
 
         {/* Legend */}
         <div className="flex flex-wrap gap-3 pt-2">
-          {(Object.entries(SECTION_CONFIG) as [OrderSection, typeof SECTION_CONFIG[OrderSection]][]).map(([section, cfg]) => {
+          {Object.entries(SECTION_CONFIG).map(([sec, cfg]) => {
             const Icon = cfg.icon;
             return (
-              <div key={section} className={`flex items-center gap-1.5 text-xs px-2 py-1 rounded-lg border ${cfg.color}`}>
+              <div key={sec} className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border ${cfg.color}`}>
                 <Icon className="w-3 h-3" />
-                <span>{t(`section.${section}` as Parameters<typeof t>[0])}</span>
+                <span>{sec === 'printing3d' ? '3D' : sec === 'design' ? 'تصميم' : sec === 'pcbPrinting' ? 'PCB' : 'خارجي'}</span>
               </div>
             );
           })}

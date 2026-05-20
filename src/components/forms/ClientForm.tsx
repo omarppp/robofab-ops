@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { Input, Textarea, Select } from '@/components/ui/Input';
+import { Input, Textarea } from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import type { Client, ClientCategory } from '@/types';
 import { CLIENT_CATEGORY_LABELS } from '@/utils/formatters';
@@ -51,17 +51,17 @@ export default function ClientForm({ initial, onSubmit, loading }: Props) {
         <Input label="العنوان" value={form.address} onChange={e => set('address', e.target.value)} />
       </div>
       <div>
-        <label className="text-sm font-medium text-slate-700 block mb-2">فئة العميل</label>
+        <label className="text-sm font-medium text-slate-300 block mb-2">فئة العميل</label>
         <div className="flex flex-wrap gap-2">
           {ALL_CATEGORIES.map(cat => (
             <button
               key={cat}
               type="button"
               onClick={() => toggleCategory(cat)}
-              className={`px-3 py-1.5 rounded-lg text-sm transition-all border ${
+              className={`px-3 py-1.5 rounded-xl text-sm transition-all border ${
                 form.category.includes(cat)
-                  ? 'bg-blue-50 text-blue-700 border-blue-200'
-                  : 'bg-white text-slate-500 border-slate-300 hover:border-slate-400'
+                  ? 'bg-blue-500/10 text-blue-400 border-blue-500/30'
+                  : 'bg-slate-800 text-slate-500 border-slate-700 hover:border-slate-600 hover:text-slate-300'
               }`}
             >
               {CLIENT_CATEGORY_LABELS[cat]}

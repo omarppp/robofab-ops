@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ar" dir="rtl" className={cairo.variable}>
-      <body className="font-cairo antialiased bg-[#F5F7FB] text-slate-900 min-h-screen">
+      <body className="font-cairo antialiased bg-[#060E1A] text-slate-200 min-h-screen">
         <LanguageProvider>
           <AuthProvider>
             <AnalyticsInit />

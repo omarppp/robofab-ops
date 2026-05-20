@@ -29,7 +29,7 @@ export default function EditDesignOrderPage() {
   return (
     <DashboardLayout title="تعديل طلب التصميم">
       <div className="max-w-3xl">
-        <div className="bg-white border border-slate-200 shadow-sm rounded-xl p-6">
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
           <DesignOrderForm initial={order} onSubmit={handleSubmit} loading={loading} />
         </div>
       </div>

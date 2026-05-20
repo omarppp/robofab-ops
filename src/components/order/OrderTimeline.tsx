@@ -68,44 +68,42 @@ export default function OrderTimeline({ order }: Props) {
     }] : []),
   ];
 
-  const accentMap: Record<string, string> = {
-    cyan: 'bg-blue-500 border-blue-500',
-    green: 'bg-green-500 border-green-500',
-    amber: 'bg-amber-500 border-amber-500',
-    red: 'bg-red-500 border-red-500',
-    purple: 'bg-purple-500 border-purple-500',
+  const dotMap: Record<string, string> = {
+    cyan:   'bg-cyan-500 border-cyan-500',
+    green:  'bg-green-500 border-green-500',
+    amber:  'bg-amber-500 border-amber-500',
+    red:    'bg-red-500 border-red-500',
+    purple: 'bg-violet-500 border-violet-500',
   };
   const textMap: Record<string, string> = {
-    cyan: 'text-blue-600',
-    green: 'text-green-600',
-    amber: 'text-amber-600',
-    red: 'text-red-600',
-    purple: 'text-purple-600',
+    cyan:   'text-cyan-400',
+    green:  'text-green-400',
+    amber:  'text-amber-400',
+    red:    'text-red-400',
+    purple: 'text-violet-400',
   };
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-      <h3 className="text-slate-900 font-semibold mb-4 text-sm">{t('timeline.title')}</h3>
+    <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
+      <h3 className="text-slate-200 font-semibold mb-4 text-sm">{t('timeline.title')}</h3>
       <div className="relative">
         {events.map((ev, i) => {
           const accent = ev.accent || 'cyan';
-          const dotCls = ev.done ? accentMap[accent] : 'bg-slate-200 border-slate-300';
-          const labelCls = ev.done ? textMap[accent] : 'text-slate-400';
+          const dotCls = ev.done ? dotMap[accent] : 'bg-slate-800 border-slate-600';
+          const labelCls = ev.done ? textMap[accent] : 'text-slate-600';
           const isLast = i === events.length - 1;
           return (
             <div key={i} className="flex gap-4 relative">
-              {/* Dot + line */}
               <div className="flex flex-col items-center">
                 <div className={`w-3 h-3 rounded-full border-2 flex-shrink-0 mt-0.5 ${dotCls}`} />
-                {!isLast && <div className="w-0.5 bg-slate-200 flex-1 my-1" />}
+                {!isLast && <div className="w-0.5 bg-slate-800 flex-1 my-1" />}
               </div>
-              {/* Content */}
-              <div className={`pb-4 min-h-[28px] ${isLast ? '' : ''}`}>
+              <div className="pb-4 min-h-[28px]">
                 <p className={`text-xs font-medium leading-tight ${labelCls}`}>{ev.label}</p>
                 {ev.value && (
-                  <p className="text-slate-500 text-xs mt-0.5">{ev.value}</p>
+                  <p className="text-slate-600 text-xs mt-0.5">{ev.value}</p>
                 )}
-                {ev.late && <p className="text-red-500 text-xs mt-0.5">{t('alert.late')}</p>}
+                {ev.late && <p className="text-red-400 text-xs mt-0.5">{t('alert.late')}</p>}
               </div>
             </div>
           );

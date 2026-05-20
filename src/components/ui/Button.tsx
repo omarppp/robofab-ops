@@ -11,11 +11,11 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variants = {
-  primary: 'bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-sm',
-  secondary: 'bg-slate-100 hover:bg-slate-200 text-slate-700',
-  danger: 'bg-red-600 hover:bg-red-700 text-white shadow-sm',
-  ghost: 'hover:bg-slate-100 text-slate-600',
-  outline: 'border border-slate-300 hover:border-slate-400 text-slate-700 hover:bg-slate-50',
+  primary:   'bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-semibold shadow-lg shadow-blue-600/20',
+  secondary: 'bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-slate-200 border border-slate-700',
+  danger:    'bg-red-600 hover:bg-red-500 active:bg-red-700 text-white shadow-lg shadow-red-600/20',
+  ghost:     'hover:bg-white/5 text-slate-400 hover:text-slate-200',
+  outline:   'border border-slate-700 hover:border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-slate-100',
 };
 
 const sizes = {
@@ -31,7 +31,7 @@ export default function Button({
     <button
       {...props}
       disabled={disabled || loading}
-      className={`inline-flex items-center gap-2 rounded-lg transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500/40 disabled:opacity-50 disabled:cursor-not-allowed ${variants[variant]} ${sizes[size]} ${className}`}
+      className={`inline-flex items-center gap-2 rounded-lg transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500/30 disabled:opacity-40 disabled:cursor-not-allowed ${variants[variant]} ${sizes[size]} ${className}`}
     >
       {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : icon}
       {children}

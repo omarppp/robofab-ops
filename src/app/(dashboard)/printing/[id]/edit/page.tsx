@@ -36,7 +36,7 @@ export default function EditPrintingOrderPage() {
   return (
     <DashboardLayout title="تعديل طلب الطباعة">
       <div className="max-w-3xl">
-        <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
           <PrintingOrderForm initial={order} onSubmit={handleSubmit} loading={loading} />
         </div>
       </div>

@@ -17,16 +17,16 @@ const ERROR_COPY: Record<ProfileErrorCode, { ar: string; en: string }> = {
 function AccessDeniedScreen({ code, onSignOut }: { code: ProfileErrorCode; onSignOut: () => void }) {
   const msgs = ERROR_COPY[code] ?? ERROR_COPY.error;
   return (
-    <div className="min-h-screen bg-[#F5F7FB] flex items-center justify-center p-4" dir="rtl">
-      <div className="bg-white border border-red-200 rounded-2xl p-8 max-w-sm w-full text-center shadow-xl shadow-slate-200/60">
-        <div className="w-16 h-16 rounded-full bg-red-50 border border-red-200 flex items-center justify-center mx-auto mb-5">
-          <ShieldOff className="w-8 h-8 text-red-500" />
+    <div className="min-h-screen bg-[#060E1A] flex items-center justify-center p-4" dir="rtl">
+      <div className="bg-slate-900 border border-red-500/20 rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl shadow-black/50 animate-scale-in">
+        <div className="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto mb-5">
+          <ShieldOff className="w-8 h-8 text-red-400" />
         </div>
-        <h2 className="text-slate-900 font-bold text-lg mb-1">{msgs.ar}</h2>
+        <h2 className="text-slate-100 font-bold text-lg mb-1">{msgs.ar}</h2>
         <p className="text-slate-500 text-sm mb-6">{msgs.en}</p>
         <button
           onClick={onSignOut}
-          className="w-full bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 hover:text-slate-900 rounded-xl px-4 py-2.5 text-sm transition-colors"
+          className="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-slate-100 rounded-xl px-4 py-2.5 text-sm transition-colors"
         >
           تسجيل الخروج &nbsp;/&nbsp; Sign Out
         </button>

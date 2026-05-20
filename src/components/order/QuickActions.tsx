@@ -109,65 +109,61 @@ export default function QuickActions({ order, onUpdated }: Props) {
 
   if (isTerminal) return null;
 
-  const btnCls = "text-xs";
-
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-      <h3 className="text-slate-900 font-semibold mb-3 text-sm">{t('qa.actions')}</h3>
+    <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+      <h3 className="text-slate-200 font-semibold mb-3 text-sm">{t('qa.actions')}</h3>
 
       <div className="flex flex-wrap gap-2">
         {canStart && (
-          <Button size="sm" className={btnCls} icon={<Play className="w-3.5 h-3.5" />} onClick={handleStart} loading={saving}>
+          <Button size="sm" icon={<Play className="w-3.5 h-3.5" />} onClick={handleStart} loading={saving}>
             {t('qa.startWork')}
           </Button>
         )}
         {canFinish && (
-          <Button size="sm" variant="outline" className={btnCls} icon={<CheckSquare className="w-3.5 h-3.5" />} onClick={handleFinish} loading={saving}>
+          <Button size="sm" variant="outline" icon={<CheckSquare className="w-3.5 h-3.5" />} onClick={handleFinish} loading={saving}>
             {t('qa.finishWork')}
           </Button>
         )}
         {canMarkReady && (
-          <Button size="sm" variant="outline" className={`${btnCls} border-blue-200 text-blue-600 hover:bg-blue-50`} icon={<Package className="w-3.5 h-3.5" />} onClick={handleReady} loading={saving}>
+          <Button size="sm" variant="outline" icon={<Package className="w-3.5 h-3.5" />} onClick={handleReady} loading={saving}>
             {t('qa.markReady')}
           </Button>
         )}
         {canDeliver && (
-          <Button size="sm" className={`${btnCls} bg-purple-600 hover:bg-purple-700`} icon={<Truck className="w-3.5 h-3.5" />} onClick={handleDeliver} loading={saving}>
+          <Button size="sm" icon={<Truck className="w-3.5 h-3.5" />} onClick={handleDeliver} loading={saving}>
             {t('qa.deliver')}
           </Button>
         )}
-        <Button size="sm" variant="ghost" className={`${btnCls} text-amber-600 hover:text-amber-700`} icon={<PauseCircle className="w-3.5 h-3.5" />} onClick={() => setShowHold(true)}>
-          {t('qa.hold')}
+        <Button size="sm" variant="ghost" icon={<PauseCircle className="w-3.5 h-3.5" />} onClick={() => setShowHold(true)}>
+          <span className="text-amber-400">{t('qa.hold')}</span>
         </Button>
-        <Button size="sm" variant="ghost" className={`${btnCls} text-red-600 hover:text-red-700`} icon={<XCircle className="w-3.5 h-3.5" />} onClick={() => setShowCancelConfirm(true)}>
-          {t('qa.cancel')}
+        <Button size="sm" variant="ghost" icon={<XCircle className="w-3.5 h-3.5" />} onClick={() => setShowCancelConfirm(true)}>
+          <span className="text-red-400">{t('qa.cancel')}</span>
         </Button>
       </div>
 
-      {/* Hold reason picker */}
       {showHold && (
-        <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-          <p className="text-amber-700 text-xs font-medium mb-2">{t('qa.holdReason')}</p>
+        <div className="mt-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+          <p className="text-amber-400 text-xs font-medium mb-2">{t('qa.holdReason')}</p>
           <select
             value={holdReason}
             onChange={e => setHoldReason(e.target.value as WaitingReason)}
-            className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm text-slate-700 focus:outline-none focus:border-amber-500 mb-2"
+            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-slate-200 focus:outline-none focus:border-amber-500/60 mb-2"
           >
             {WAITING_REASONS.map(r => (
               <option key={r} value={r}>{t(`wait.${r}` as TranslationKey)}</option>
             ))}
           </select>
           <div className="flex gap-2">
-            <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-xs" onClick={handleHold} loading={saving}>{t('qa.confirmHold')}</Button>
+            <Button size="sm" className="bg-amber-600 hover:bg-amber-500 text-xs" onClick={handleHold} loading={saving}>{t('qa.confirmHold')}</Button>
             <Button size="sm" variant="ghost" className="text-xs" onClick={() => setShowHold(false)}>{t('common.cancel')}</Button>
           </div>
         </div>
       )}
 
-      {/* Cancel confirm */}
       {showCancelConfirm && (
-        <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-red-600 text-xs font-medium mb-2">{t('qa.cancelWarning')}</p>
+        <div className="mt-3 p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
+          <p className="text-red-400 text-xs font-medium mb-2">{t('qa.cancelWarning')}</p>
           <div className="flex gap-2">
             <Button size="sm" variant="danger" className="text-xs" onClick={handleCancel} loading={saving}>{t('qa.confirmCancel')}</Button>
             <Button size="sm" variant="ghost" className="text-xs" onClick={() => setShowCancelConfirm(false)}>{t('common.cancel')}</Button>

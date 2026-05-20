@@ -37,37 +37,32 @@ export default function MachineSchedulePage() {
     return { printing, scheduled, other };
   };
 
-  const busyMachines = machines.filter(m => {
-    const { printing } = getMachineJobs(m.id);
-    return printing.length > 0;
-  });
+  const busyMachines = machines.filter(m => getMachineJobs(m.id).printing.length > 0);
 
   return (
     <DashboardLayout title={t('mschedule.title')}>
-      <div className="space-y-5">
-        {/* Header */}
+      <div className="space-y-5 animate-fade-in">
         <div className="flex items-center gap-3">
-          <Link href="/machines" className="text-slate-400 hover:text-slate-700 transition-colors">
+          <Link href="/machines" className="text-slate-500 hover:text-slate-200 transition-colors">
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div>
-            <h1 className="text-slate-900 font-bold text-lg">{t('mschedule.title')}</h1>
+            <h1 className="text-slate-200 font-bold text-lg">{t('mschedule.title')}</h1>
             <p className="text-slate-500 text-sm">{t('mschedule.allMachines')}</p>
           </div>
         </div>
 
-        {/* Overview strip */}
         <div className="grid grid-cols-3 gap-3">
-          <div className="bg-white border border-slate-200 rounded-xl p-4 text-center shadow-sm">
-            <div className="text-2xl font-bold text-slate-900">{machines.length}</div>
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 text-center">
+            <div className="text-2xl font-bold text-slate-100">{machines.length}</div>
             <div className="text-slate-500 text-xs mt-1">{t('mschedule.allMachines')}</div>
           </div>
-          <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
-            <div className="text-2xl font-bold text-green-600">{busyMachines.length}</div>
+          <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4 text-center">
+            <div className="text-2xl font-bold text-green-400">{busyMachines.length}</div>
             <div className="text-slate-500 text-xs mt-1">{t('mschedule.busy')}</div>
           </div>
-          <div className="bg-white border border-slate-200 rounded-xl p-4 text-center shadow-sm">
-            <div className="text-2xl font-bold text-slate-500">{machines.length - busyMachines.length}</div>
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 text-center">
+            <div className="text-2xl font-bold text-slate-400">{machines.length - busyMachines.length}</div>
             <div className="text-slate-500 text-xs mt-1">{t('mschedule.free')}</div>
           </div>
         </div>
@@ -82,35 +77,33 @@ export default function MachineSchedulePage() {
               return (
                 <div
                   key={machine.id}
-                  className={`bg-white border rounded-xl p-4 shadow-sm ${
-                    isBusy ? 'border-green-300' : isScheduled ? 'border-blue-200' : 'border-slate-200'
+                  className={`bg-slate-900 border rounded-xl p-4 transition-all ${
+                    isBusy ? 'border-green-500/30' : isScheduled ? 'border-blue-500/30' : 'border-slate-800'
                   }`}
                 >
-                  {/* Machine header */}
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <div className={`w-2.5 h-2.5 rounded-full ${isBusy ? 'bg-green-500 animate-pulse' : isScheduled ? 'bg-blue-500' : 'bg-slate-300'}`} />
-                      <Cpu className="w-4 h-4 text-slate-400" />
-                      <span className="text-slate-900 font-semibold text-sm">{machine.name}</span>
+                      <div className={`w-2.5 h-2.5 rounded-full ${isBusy ? 'bg-green-500 animate-pulse' : isScheduled ? 'bg-blue-500' : 'bg-slate-700'}`} />
+                      <Cpu className="w-4 h-4 text-slate-500" />
+                      <span className="text-slate-200 font-semibold text-sm">{machine.name}</span>
                     </div>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${
-                      isBusy ? 'bg-green-50 text-green-700 border border-green-200' : isScheduled ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-slate-100 text-slate-500 border border-slate-200'
+                    <span className={`text-xs px-2 py-0.5 rounded-full border ${
+                      isBusy ? 'bg-green-500/10 text-green-400 border-green-500/20' : isScheduled ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-slate-800 text-slate-500 border-slate-700'
                     }`}>
                       {isBusy ? t('mschedule.busy') : isScheduled ? t('mschedule.scheduled') : t('mschedule.free')}
                     </span>
                   </div>
 
-                  {/* Printing now */}
                   {printing.map(o => (
                     <Link key={o.id} href={`/printing/${o.id}`} className="block mb-2">
-                      <div className="bg-green-50 border border-green-200 rounded-lg p-2.5 hover:border-green-300 transition-colors">
+                      <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-2.5 hover:border-green-500/40 transition-colors">
                         <div className="flex items-center gap-1.5 mb-1">
-                          <Play className="w-3 h-3 text-green-600 flex-shrink-0" />
-                          <span className="text-green-700 text-xs font-medium truncate">{o.orderName}</span>
+                          <Play className="w-3 h-3 text-green-400 flex-shrink-0" />
+                          <span className="text-green-300 text-xs font-medium truncate">{o.orderName}</span>
                         </div>
                         <p className="text-slate-500 text-xs truncate">{o.clientName}</p>
                         {o.plannedStartDate && (
-                          <p className="text-slate-400 text-xs mt-1 flex items-center gap-1">
+                          <p className="text-slate-600 text-xs mt-1 flex items-center gap-1">
                             <Clock className="w-3 h-3" /> {jobTimeRange(o)}
                           </p>
                         )}
@@ -118,19 +111,18 @@ export default function MachineSchedulePage() {
                     </Link>
                   ))}
 
-                  {/* Scheduled */}
                   {scheduled.length > 0 && (
                     <div className="mt-2">
-                      <p className="text-xs text-slate-400 mb-1.5">{t('mschedule.upcoming')}</p>
+                      <p className="text-xs text-slate-600 mb-1.5">{t('mschedule.upcoming')}</p>
                       {scheduled.map(o => (
                         <Link key={o.id} href={`/printing/${o.id}`} className="block mb-1.5">
-                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 hover:border-blue-300 transition-colors">
+                          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-2 hover:border-blue-500/40 transition-colors">
                             <div className="flex items-center gap-1.5 mb-0.5">
-                              <Calendar className="w-3 h-3 text-blue-600 flex-shrink-0" />
-                              <span className="text-slate-700 text-xs truncate">{o.orderName}</span>
+                              <Calendar className="w-3 h-3 text-blue-400 flex-shrink-0" />
+                              <span className="text-slate-300 text-xs truncate">{o.orderName}</span>
                             </div>
                             {o.plannedStartDate && (
-                              <p className="text-slate-400 text-xs">{jobTimeRange(o)}</p>
+                              <p className="text-slate-600 text-xs">{jobTimeRange(o)}</p>
                             )}
                           </div>
                         </Link>
@@ -138,15 +130,14 @@ export default function MachineSchedulePage() {
                     </div>
                   )}
 
-                  {/* Other active orders on this machine */}
                   {other.length > 0 && (
-                    <div className="mt-2 pt-2 border-t border-slate-100">
-                      <p className="text-xs text-slate-400 mb-1">{other.length} {t('mschedule.upcoming')} orders</p>
+                    <div className="mt-2 pt-2 border-t border-slate-800">
+                      <p className="text-xs text-slate-600 mb-1">{other.length} {t('mschedule.upcoming')} orders</p>
                     </div>
                   )}
 
                   {printing.length === 0 && scheduled.length === 0 && other.length === 0 && (
-                    <p className="text-slate-400 text-xs text-center py-3">{t('mschedule.noJobs')}</p>
+                    <p className="text-slate-700 text-xs text-center py-3">{t('mschedule.noJobs')}</p>
                   )}
                 </div>
               );

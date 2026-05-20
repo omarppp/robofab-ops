@@ -70,14 +70,14 @@ export default function DesignOrderForm({ initial, onSubmit, loading }: Props) {
         <Input label="تاريخ الاستلام" type="date" value={form.receivedDate} onChange={e => set('receivedDate', e.target.value)} />
         <Input label="تاريخ التسليم *" type="date" value={form.deliveryDate} onChange={e => set('deliveryDate', e.target.value)} error={errors.deliveryDate} />
       </div>
-      <div className="border-t border-slate-100 pt-5">
-        <h3 className="text-slate-900 font-medium mb-4">المالية</h3>
+      <div className="border-t border-slate-800 pt-5">
+        <h3 className="text-slate-300 font-medium mb-4">المالية</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Input label="السعر (ر.س)" type="number" min="0" step="0.01" value={form.price} onChange={e => set('price', e.target.value)} />
           <Input label="المبلغ المدفوع (ر.س)" type="number" min="0" step="0.01" value={form.paidAmount} onChange={e => set('paidAmount', e.target.value)} />
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-slate-700">المتبقي (ر.س)</label>
-            <div className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-blue-600 font-mono text-sm">
+            <label className="text-sm font-medium text-slate-300">المتبقي (ر.س)</label>
+            <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl px-3 py-2 text-blue-400 font-mono text-sm">
               {Math.max(0, Number(form.price) - Number(form.paidAmount)).toFixed(2)}
             </div>
           </div>

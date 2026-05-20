@@ -1,5 +1,5 @@
 'use client';
-import { Database, Shield, User } from 'lucide-react';
+import { Database, Shield, User, Zap } from 'lucide-react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { useAuth } from '@/context/AuthContext';
 
@@ -8,77 +8,91 @@ export default function SettingsPage() {
 
   return (
     <DashboardLayout title="الإعدادات">
-      <div className="max-w-2xl space-y-6">
+      <div className="max-w-2xl space-y-4 animate-fade-in">
         {/* Profile */}
-        <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
           <div className="flex items-center gap-3 mb-5">
-            <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center">
-              <User className="w-4 h-4 text-blue-600" />
+            <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+              <User className="w-4 h-4 text-blue-400" />
             </div>
-            <h3 className="text-slate-900 font-semibold">معلومات الحساب</h3>
+            <h3 className="text-slate-200 font-semibold text-sm">معلومات الحساب</h3>
           </div>
           <div className="space-y-4">
+            {[
+              { label: 'البريد الإلكتروني', value: appUser?.email },
+              { label: 'الاسم', value: appUser?.displayName },
+            ].map(({ label, value }) => (
+              <div key={label} className="flex flex-col gap-1">
+                <span className="text-xs text-slate-600">{label}</span>
+                <span className="text-slate-200 font-medium">{value || '—'}</span>
+              </div>
+            ))}
             <div className="flex flex-col gap-1">
-              <span className="text-xs text-slate-500">البريد الإلكتروني</span>
-              <span className="text-slate-900 font-medium">{appUser?.email}</span>
-            </div>
-            <div className="flex flex-col gap-1">
-              <span className="text-xs text-slate-500">الاسم</span>
-              <span className="text-slate-900 font-medium">{appUser?.displayName}</span>
-            </div>
-            <div className="flex flex-col gap-1">
-              <span className="text-xs text-slate-500">الدور</span>
-              <span className="text-blue-600 font-medium capitalize">{appUser?.role}</span>
+              <span className="text-xs text-slate-600">الدور</span>
+              <span className="text-blue-400 font-medium capitalize">{appUser?.role}</span>
             </div>
           </div>
         </div>
 
         {/* System Info */}
-        <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
           <div className="flex items-center gap-3 mb-5">
-            <div className="w-8 h-8 rounded-lg bg-purple-50 border border-purple-200 flex items-center justify-center">
-              <Database className="w-4 h-4 text-purple-600" />
+            <div className="w-8 h-8 rounded-lg bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
+              <Database className="w-4 h-4 text-violet-400" />
             </div>
-            <h3 className="text-slate-900 font-semibold">معلومات النظام</h3>
+            <h3 className="text-slate-200 font-semibold text-sm">معلومات النظام</h3>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-1">
             {[
-              { label: 'اسم النظام', value: 'RoboFab Operations System' },
-              { label: 'الإصدار', value: '1.0.0' },
+              { label: 'اسم النظام',   value: 'RoboFab Operations System' },
+              { label: 'الإصدار',       value: '2.0.0 — Forge Dark' },
               { label: 'قاعدة البيانات', value: 'Firebase Firestore' },
-              { label: 'المصادقة', value: 'Firebase Authentication' },
+              { label: 'المصادقة',      value: 'Firebase Authentication' },
             ].map(({ label, value }) => (
-              <div key={label} className="flex items-center justify-between py-2 border-b border-slate-100">
+              <div key={label} className="flex items-center justify-between py-2.5 border-b border-slate-800 last:border-0">
                 <span className="text-slate-500 text-sm">{label}</span>
-                <span className="text-slate-900 text-sm font-medium">{value}</span>
+                <span className="text-slate-300 text-sm font-medium">{value}</span>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Roles Reference */}
-        <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+        {/* Roles */}
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
           <div className="flex items-center gap-3 mb-5">
-            <div className="w-8 h-8 rounded-lg bg-green-50 border border-green-200 flex items-center justify-center">
-              <Shield className="w-4 h-4 text-green-600" />
+            <div className="w-8 h-8 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center justify-center">
+              <Shield className="w-4 h-4 text-green-400" />
             </div>
-            <h3 className="text-slate-900 font-semibold">الأدوار والصلاحيات</h3>
+            <h3 className="text-slate-200 font-semibold text-sm">الأدوار والصلاحيات</h3>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2">
             {[
-              { role: 'owner', label: 'المالك', desc: 'صلاحيات كاملة على جميع البيانات والإعدادات', color: 'text-yellow-600' },
-              { role: 'admin', label: 'المدير', desc: 'إدارة الطلبات والعملاء والتقارير', color: 'text-blue-600' },
-              { role: 'staff', label: 'الموظف', desc: 'إضافة وتعديل الطلبات', color: 'text-green-600' },
-              { role: 'viewer', label: 'المشاهد', desc: 'عرض البيانات فقط', color: 'text-slate-600' },
+              { role: 'owner',  label: 'المالك',   desc: 'صلاحيات كاملة على جميع البيانات والإعدادات', color: 'text-amber-400' },
+              { role: 'admin',  label: 'المدير',   desc: 'إدارة الطلبات والعملاء والتقارير',           color: 'text-blue-400' },
+              { role: 'staff',  label: 'الموظف',   desc: 'إضافة وتعديل الطلبات',                      color: 'text-green-400' },
+              { role: 'viewer', label: 'المشاهد',  desc: 'عرض البيانات فقط',                          color: 'text-slate-400' },
             ].map(({ role, label, desc, color }) => (
-              <div key={role} className={`flex items-start justify-between p-3 rounded-lg ${appUser?.role === role ? 'bg-blue-50 border border-blue-100' : ''}`}>
+              <div key={role} className={`flex items-start justify-between p-3 rounded-xl ${appUser?.role === role ? 'bg-blue-500/10 border border-blue-500/20' : 'hover:bg-slate-800/50'}`}>
                 <div>
                   <span className={`text-sm font-medium ${color}`}>{label}</span>
-                  <p className="text-slate-400 text-xs mt-0.5">{desc}</p>
+                  <p className="text-slate-600 text-xs mt-0.5">{desc}</p>
                 </div>
-                {appUser?.role === role && <span className="text-xs bg-blue-100 text-blue-700 border border-blue-200 rounded-full px-2 py-0.5">حالي</span>}
+                {appUser?.role === role && (
+                  <span className="text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full px-2 py-0.5">حالي</span>
+                )}
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Branding */}
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/20 flex-shrink-0">
+            <Zap className="w-5 h-5 text-white" fill="currentColor" />
+          </div>
+          <div>
+            <p className="text-slate-200 font-semibold text-sm">RoboFab Operations System</p>
+            <p className="text-slate-600 text-xs">Forge Dark — Premium Operations Platform</p>
           </div>
         </div>
       </div>

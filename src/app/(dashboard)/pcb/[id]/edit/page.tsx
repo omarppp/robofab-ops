@@ -27,7 +27,7 @@ export default function EditPCBOrderPage() {
   if (!order) return <DashboardLayout title="تعديل الطلب"><p className="text-slate-400">الطلب غير موجود</p></DashboardLayout>;
   return (
     <DashboardLayout title="تعديل طلب PCB">
-      <div className="max-w-3xl"><div className="bg-white border border-slate-200 shadow-sm rounded-xl p-6"><PCBOrderForm initial={order} onSubmit={handleSubmit} loading={loading} /></div></div>
+      <div className="max-w-3xl"><div className="bg-slate-900 border border-slate-800 rounded-xl p-6"><PCBOrderForm initial={order} onSubmit={handleSubmit} loading={loading} /></div></div>
     </DashboardLayout>
   );
 }

@@ -17,7 +17,7 @@ export default function NewOutsourcedOrderPage() {
   };
   return (
     <DashboardLayout title="طلب طباعة خارجية جديد">
-      <div className="max-w-3xl"><div className="bg-white border border-slate-200 shadow-sm rounded-xl p-6"><OutsourcedOrderForm onSubmit={handleSubmit} loading={loading} /></div></div>
+      <div className="max-w-3xl"><div className="bg-slate-900 border border-slate-800 rounded-xl p-6"><OutsourcedOrderForm onSubmit={handleSubmit} loading={loading} /></div></div>
     </DashboardLayout>
   );
 }

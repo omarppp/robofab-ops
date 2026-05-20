@@ -69,32 +69,32 @@ export function getEffectiveStage(order: Order): OrderStage {
   return defaultStageForSection(order.status, order.section);
 }
 
-// Stage color utilities for UI
+// Stage color utilities for UI (dark theme)
 export function stageColor(stage: OrderStage): string {
   switch (stage) {
-    case 'new':                  return 'bg-blue-50 text-blue-700 border-blue-200';
+    case 'new':                  return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
     case 'reviewingFile':
-    case 'fileReview':           return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+    case 'fileReview':           return 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20';
     case 'waitingClientConfirm':
-    case 'waitingClientReview':  return 'bg-yellow-50 text-yellow-700 border-yellow-200';
-    case 'waitingMaterial':      return 'bg-orange-50 text-orange-700 border-orange-200';
-    case 'scheduledPrinting':    return 'bg-purple-50 text-purple-700 border-purple-200';
-    case 'printing':             return 'bg-cyan-50 text-cyan-700 border-cyan-200';
+    case 'waitingClientReview':  return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20';
+    case 'waitingMaterial':      return 'bg-orange-500/10 text-orange-400 border-orange-500/20';
+    case 'scheduledPrinting':    return 'bg-violet-500/10 text-violet-400 border-violet-500/20';
+    case 'printing':             return 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20';
     case 'postProcessing':
-    case 'finishing':            return 'bg-teal-50 text-teal-700 border-teal-200';
-    case 'readyDelivery':        return 'bg-green-50 text-green-700 border-green-200';
-    case 'delivered':            return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-    case 'cancelled':            return 'bg-slate-100 text-slate-500 border-slate-200';
-    case 'requirementsReceived': return 'bg-blue-50 text-blue-700 border-blue-200';
-    case 'inDesign':             return 'bg-cyan-50 text-cyan-700 border-cyan-200';
-    case 'revision':             return 'bg-amber-50 text-amber-700 border-amber-200';
-    case 'finalFilesReady':      return 'bg-green-50 text-green-700 border-green-200';
-    case 'preparingBoard':       return 'bg-indigo-50 text-indigo-700 border-indigo-200';
-    case 'sentExternal':         return 'bg-violet-50 text-violet-700 border-violet-200';
-    case 'inProgressOutside':    return 'bg-purple-50 text-purple-700 border-purple-200';
-    case 'receivedCompany':      return 'bg-teal-50 text-teal-700 border-teal-200';
-    case 'checked':              return 'bg-green-50 text-green-700 border-green-200';
-    default:                     return 'bg-slate-100 text-slate-500 border-slate-200';
+    case 'finishing':            return 'bg-teal-500/10 text-teal-400 border-teal-500/20';
+    case 'readyDelivery':        return 'bg-green-500/10 text-green-400 border-green-500/20';
+    case 'delivered':            return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+    case 'cancelled':            return 'bg-slate-800 text-slate-500 border-slate-700';
+    case 'requirementsReceived': return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
+    case 'inDesign':             return 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20';
+    case 'revision':             return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+    case 'finalFilesReady':      return 'bg-green-500/10 text-green-400 border-green-500/20';
+    case 'preparingBoard':       return 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20';
+    case 'sentExternal':         return 'bg-violet-500/10 text-violet-400 border-violet-500/20';
+    case 'inProgressOutside':    return 'bg-purple-500/10 text-purple-400 border-purple-500/20';
+    case 'receivedCompany':      return 'bg-teal-500/10 text-teal-400 border-teal-500/20';
+    case 'checked':              return 'bg-green-500/10 text-green-400 border-green-500/20';
+    default:                     return 'bg-slate-800 text-slate-500 border-slate-700';
   }
 }
 

@@ -14,7 +14,7 @@ export default function DashboardLayout({ children, title }: DashboardLayoutProp
   const { isRTL } = useTranslation();
 
   return (
-    <div className="flex h-screen bg-[#F5F7FB] overflow-hidden" dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className="flex h-screen bg-[#060E1A] overflow-hidden" dir={isRTL ? 'rtl' : 'ltr'}>
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <TopBar title={title} onMenuClick={() => setSidebarOpen(true)} />
