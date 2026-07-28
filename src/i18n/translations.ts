@@ -83,8 +83,10 @@ export const translations = {
     'cat.unspecified':  'نوع الأوردر غير محدد',
 
     // ── Client categories ─────────────────────────────────────────────────────
-    'ccat.chandelier': 'النجف',
-    'ccat.holder':     'الهولدرات',
+    'ccat.chandelier': 'نجف',
+    'ccat.holder':     'هولدرات',
+    'ccat.both':       'الاتنين',
+    'ccat.general':    'عام',
 
     // ── Material types ────────────────────────────────────────────────────────
     'material.PLA':   'PLA',
@@ -136,6 +138,8 @@ export const translations = {
     'form.orderName':        'اسم الطلب',
     'form.clientName':       'اسم العميل',
     'form.clientPhone':      'رقم الهاتف',
+    'form.clientEmail':      'البريد الإلكتروني',
+    'form.clientAddress':    'العنوان',
     'form.category':         'نوع الطلب',
     'form.productType':      'نوع المنتج',
     'form.receivedDate':     'تاريخ الاستلام',
@@ -214,6 +218,17 @@ export const translations = {
     'clients.empty':   'لا يوجد عملاء',
     'clients.search':  'بحث بالاسم أو الهاتف...',
     'clients.add':     'إضافة عميل',
+    'clients.filterCategory': 'الفئة',
+    'clients.orderCount':     'عدد الطلبات',
+    'clients.lastOrder':      'آخر طلب',
+    'clients.noOrders':       'لا توجد طلبات',
+    'clients.select':         'اختر عميل...',
+    'clients.selectHint':     'ابحث بالاسم أو رقم الهاتف',
+    'clients.noneForCategory':'لا يوجد عملاء مناسبون لهذا النوع',
+    'clients.addFromOrder':   'إضافة عميل جديد',
+    'clients.quickAddTitle':  'إضافة عميل جديد',
+    'clients.linkedWarning':  'هذا الأوردر غير مربوط بعميل محفوظ',
+    'clients.clearSelection': 'إلغاء التحديد',
 
     // ── Machines ──────────────────────────────────────────────────────────────
     'machines.title':   'الماكينات',
@@ -565,6 +580,8 @@ export const translations = {
     // ── Client categories ─────────────────────────────────────────────────────
     'ccat.chandelier': 'Chandelier',
     'ccat.holder':     'Holder',
+    'ccat.both':       'Both',
+    'ccat.general':    'General',
 
     // ── Material types ────────────────────────────────────────────────────────
     'material.PLA':   'PLA',
@@ -616,6 +633,8 @@ export const translations = {
     'form.orderName':        'Order Name',
     'form.clientName':       'Client Name',
     'form.clientPhone':      'Phone Number',
+    'form.clientEmail':      'Email',
+    'form.clientAddress':    'Address',
     'form.category':         'Order Category',
     'form.productType':      'Product Type',
     'form.receivedDate':     'Received Date',
@@ -694,6 +713,17 @@ export const translations = {
     'clients.empty':    'No clients found',
     'clients.search':   'Search by name or phone...',
     'clients.add':      'Add Client',
+    'clients.filterCategory': 'Category',
+    'clients.orderCount':     'Orders',
+    'clients.lastOrder':      'Last Order',
+    'clients.noOrders':       'No orders',
+    'clients.select':         'Select a client...',
+    'clients.selectHint':     'Search by name or phone number',
+    'clients.noneForCategory':'No matching clients for this category',
+    'clients.addFromOrder':   'Add New Client',
+    'clients.quickAddTitle':  'Add New Client',
+    'clients.linkedWarning':  'This order is not linked to a saved client',
+    'clients.clearSelection': 'Clear selection',
 
     // ── Machines ──────────────────────────────────────────────────────────────
     'machines.title':   'Machines',

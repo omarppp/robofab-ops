@@ -4,16 +4,19 @@ import { AlertCircle, Clock, ShieldAlert, UploadCloud, X, Loader2 } from 'lucide
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Input, Textarea, Select } from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
+import Modal from '@/components/ui/Modal';
 import FilamentSelect from '@/components/filament/FilamentSelect';
+import ClientSelect from '@/components/clients/ClientSelect';
+import ClientForm from '@/components/forms/ClientForm';
 import { useMachines } from '@/hooks/useMachines';
 import { useFilamentStock } from '@/hooks/useFilamentStock';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/hooks/useTranslation';
-import { getOrders } from '@/lib/firestore';
+import { getOrders, createClient } from '@/lib/firestore';
 import { storage } from '@/lib/firebase';
 import { toInputDate } from '@/utils/dateUtils';
 import { MATERIAL_TYPE_LABELS } from '@/utils/formatters';
-import type { Order, OrderCategory, FilamentStock } from '@/types';
+import type { Order, OrderCategory, FilamentStock, Client } from '@/types';
 
 interface Props {
   category: OrderCategory;
@@ -37,6 +40,8 @@ export default function OrderForm({ category, initial, onSubmit, loading }: Prop
     orderName: initial?.orderName || '',
     clientName: initial?.clientName || '',
     clientPhone: initial?.clientPhone || '',
+    clientEmail: initial?.clientEmail || '',
+    clientAddress: initial?.clientAddress || '',
     productType: initial?.productType || '',
     receivedDate: toInputDate(initial?.receivedDate) || new Date().toISOString().split('T')[0],
     deliveryDate: toInputDate(initial?.deliveryDate) || '',
@@ -54,6 +59,9 @@ export default function OrderForm({ category, initial, onSubmit, loading }: Prop
 
   const [selectedFilament, setSelectedFilament] = useState<FilamentStock | null>(null);
   const [stockOverride, setStockOverride] = useState(false);
+  const [selectedClientId, setSelectedClientId] = useState<string | undefined>(initial?.clientId);
+  const [showQuickAddClient, setShowQuickAddClient] = useState(false);
+  const [quickAddSaving, setQuickAddSaving] = useState(false);
   const [sched, setSched] = useState({
     plannedStartDate: initial?.plannedStartDate || '',
     printStartTime: initial?.printStartTime || '',
@@ -74,6 +82,38 @@ export default function OrderForm({ category, initial, onSubmit, loading }: Prop
   const handleFilamentChange = (filament: FilamentStock | null) => {
     setSelectedFilament(filament);
     setStockOverride(false);
+  };
+
+  const handleClientChange = (client: Client | null) => {
+    setSelectedClientId(client?.id);
+    if (client) {
+      setForm(f => ({
+        ...f,
+        clientName: client.name,
+        clientPhone: client.phone,
+        clientEmail: client.email || '',
+        clientAddress: client.address || '',
+      }));
+    }
+  };
+
+  const handleQuickAddClient = async (data: Partial<Client>) => {
+    setQuickAddSaving(true);
+    try {
+      const id = await createClient({
+        name: data.name || '',
+        phone: data.phone || '',
+        email: data.email,
+        address: data.address,
+        category: data.category || category,
+        notes: data.notes || '',
+      });
+      const now = new Date().toISOString();
+      handleClientChange({ id, createdAt: now, updatedAt: now, ...data, name: data.name || '', phone: data.phone || '', category: data.category || category, notes: data.notes || '' } as Client);
+      setShowQuickAddClient(false);
+    } finally {
+      setQuickAddSaving(false);
+    }
   };
 
   const handleUpload = async (file: File) => {
@@ -120,6 +160,9 @@ export default function OrderForm({ category, initial, onSubmit, loading }: Prop
     await onSubmit({
       ...form,
       category,
+      clientId: selectedClientId,
+      clientEmail: form.clientEmail || undefined,
+      clientAddress: form.clientAddress || undefined,
       stage: initial?.stage || 'new',
       price: Number(form.price),
       paidAmount: Number(form.paidAmount),
@@ -177,13 +220,25 @@ export default function OrderForm({ category, initial, onSubmit, loading }: Prop
   }, [form.machineId, sched.plannedStartDate, sched.printStartTime, sched.printDurationHours]);
 
   return (
+    <>
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* ── Client info ── */}
       <div>
         <SectionHeading>{t('form.sectionClient')}</SectionHeading>
+        <div className="mb-4">
+          <label className="text-sm font-medium text-slate-300 block mb-1.5">{t('clients.title')}</label>
+          <ClientSelect
+            category={category}
+            value={selectedClientId}
+            onChange={handleClientChange}
+            onRequestNewClient={() => setShowQuickAddClient(true)}
+          />
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Input label={`${t('form.clientName')} *`} value={form.clientName} onChange={e => set('clientName', e.target.value)} error={errors.clientName} />
+          <Input label={`${t('form.clientName')} *`} value={form.clientName} onChange={e => { set('clientName', e.target.value); }} error={errors.clientName} />
           <Input label={t('form.clientPhone')} value={form.clientPhone} onChange={e => set('clientPhone', e.target.value)} type="tel" />
+          <Input label={t('form.clientEmail')} value={form.clientEmail} onChange={e => set('clientEmail', e.target.value)} type="email" />
+          <Input label={t('form.clientAddress')} value={form.clientAddress} onChange={e => set('clientAddress', e.target.value)} />
         </div>
       </div>
 
@@ -331,5 +386,14 @@ export default function OrderForm({ category, initial, onSubmit, loading }: Prop
         </Button>
       </div>
     </form>
+
+    <Modal open={showQuickAddClient} onClose={() => setShowQuickAddClient(false)} title={t('clients.quickAddTitle')}>
+      <ClientForm
+        initial={{ category }}
+        onSubmit={handleQuickAddClient}
+        loading={quickAddSaving}
+      />
+    </Modal>
+    </>
   );
 }

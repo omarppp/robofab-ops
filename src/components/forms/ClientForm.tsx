@@ -4,8 +4,7 @@ import { Input, Textarea } from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import type { Client, ClientCategory } from '@/types';
 import { CLIENT_CATEGORY_LABELS } from '@/utils/formatters';
-
-const ALL_CATEGORIES: ClientCategory[] = ['chandelier', 'holder'];
+import { CLIENT_CATEGORIES, normalizeClientCategory } from '@/utils/clientCategory';
 
 interface Props { initial?: Partial<Client>; onSubmit: (data: Partial<Client>) => Promise<void>; loading?: boolean; }
 
@@ -15,18 +14,11 @@ export default function ClientForm({ initial, onSubmit, loading }: Props) {
     phone: initial?.phone || '',
     email: initial?.email || '',
     address: initial?.address || '',
-    category: initial?.category || [] as ClientCategory[],
+    category: normalizeClientCategory(initial?.category),
     notes: initial?.notes || '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const set = (k: string, v: any) => setForm(f => ({ ...f, [k]: v }));
-
-  const toggleCategory = (cat: ClientCategory) => {
-    setForm(f => ({
-      ...f,
-      category: f.category.includes(cat) ? f.category.filter(c => c !== cat) : [...f.category, cat],
-    }));
-  };
+  const set = <K extends keyof typeof form>(k: K, v: (typeof form)[K]) => setForm(f => ({ ...f, [k]: v }));
 
   const validate = () => {
     const e: Record<string, string> = {};
@@ -53,13 +45,13 @@ export default function ClientForm({ initial, onSubmit, loading }: Props) {
       <div>
         <label className="text-sm font-medium text-slate-300 block mb-2">فئة العميل</label>
         <div className="flex flex-wrap gap-2">
-          {ALL_CATEGORIES.map(cat => (
+          {CLIENT_CATEGORIES.map((cat: ClientCategory) => (
             <button
               key={cat}
               type="button"
-              onClick={() => toggleCategory(cat)}
+              onClick={() => set('category', cat)}
               className={`px-3 py-1.5 rounded-xl text-sm transition-all border ${
-                form.category.includes(cat)
+                form.category === cat
                   ? 'bg-blue-500/10 text-blue-400 border-blue-500/30'
                   : 'bg-slate-800 text-slate-500 border-slate-700 hover:border-slate-600 hover:text-slate-300'
               }`}

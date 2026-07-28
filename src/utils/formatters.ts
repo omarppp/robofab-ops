@@ -19,8 +19,10 @@ export const CATEGORY_LABELS: Record<OrderCategory, string> = {
 };
 
 export const CLIENT_CATEGORY_LABELS: Record<ClientCategory, string> = {
-  chandelier: 'النجف',
-  holder: 'الهولدرات',
+  chandelier: 'نجف',
+  holder: 'هولدرات',
+  both: 'الاتنين',
+  general: 'عام',
 };
 
 export const MATERIAL_TYPE_LABELS: Record<MaterialType, string> = {

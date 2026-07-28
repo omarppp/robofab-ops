@@ -2,7 +2,7 @@ export type OrderCategory = 'chandelier' | 'holder';
 export type OrderPriority = 'low' | 'normal' | 'high' | 'urgent';
 export type MachineStatus = 'active' | 'maintenance' | 'offline';
 export type UserRole = 'owner' | 'admin' | 'staff' | 'viewer';
-export type ClientCategory = 'chandelier' | 'holder';
+export type ClientCategory = 'chandelier' | 'holder' | 'both' | 'general';
 export type MaterialType = 'PLA' | 'PETG' | 'TPU' | 'ABS' | 'ASA' | 'Resin' | 'Other';
 export type FilamentStatus = 'available' | 'low' | 'out';
 
@@ -32,8 +32,11 @@ export interface Order {
   id: string;
   category: OrderCategory;
   orderName: string;
+  clientId?: string;
   clientName: string;
   clientPhone: string;
+  clientEmail?: string;
+  clientAddress?: string;
   productType?: string;
   receivedDate: string;
   deliveryDate: string;
@@ -101,7 +104,7 @@ export interface Client {
   phone: string;
   email?: string;
   address?: string;
-  category: ClientCategory[];
+  category: ClientCategory;
   notes: string;
   createdAt: string;
   updatedAt: string;

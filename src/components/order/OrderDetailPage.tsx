@@ -122,6 +122,23 @@ export default function OrderDetailPage({ id, backHref }: Props) {
               </div>
             </div>
 
+            {/* Client info */}
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+              <h3 className="text-slate-200 font-semibold mb-4">{t('form.sectionClient')}</h3>
+              {!order.clientId && (
+                <div className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-2.5 mb-4">
+                  <AlertCircle className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
+                  <p className="text-amber-300 text-xs">{t('clients.linkedWarning')}</p>
+                </div>
+              )}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+                <Detail label={t('form.clientName')} value={order.clientName} />
+                <Detail label={t('form.clientPhone')} value={order.clientPhone} />
+                <Detail label={t('form.clientEmail')} value={order.clientEmail} />
+                <Detail label={t('form.clientAddress')} value={order.clientAddress} />
+              </div>
+            </div>
+
             <QuickActions order={order} />
 
             {/* Filament usage */}
