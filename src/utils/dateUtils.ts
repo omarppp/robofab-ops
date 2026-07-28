@@ -2,14 +2,12 @@ import type { Order } from '@/types';
 
 export function isLate(order: Order): boolean {
   if (!order.deliveryDate) return false;
-  if (order.status === 'delivered' || order.status === 'cancelled') return false;
+  if (order.stage === 'delivered' || order.stage === 'cancelled') return false;
   return new Date(order.deliveryDate) < new Date(new Date().toDateString());
 }
 
 export function isMissingGrams(order: Order): boolean {
-  if (order.section !== 'printing3d') return false;
-  if (order.splitGrams && order.gramAllocations && order.gramAllocations.length > 0) return false;
-  return !order.grams || order.grams === 0;
+  return !order.estimatedGrams || order.estimatedGrams === 0;
 }
 
 export function isToday(dateStr?: string): boolean {

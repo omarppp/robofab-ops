@@ -8,7 +8,7 @@ interface TimelineEvent {
   value?: string;
   done: boolean;
   late?: boolean;
-  accent?: 'cyan' | 'green' | 'amber' | 'red' | 'purple';
+  accent?: 'cyan' | 'green' | 'amber' | 'red' | 'purple' | 'violet' | 'teal';
 }
 
 interface Props {
@@ -20,39 +20,25 @@ export default function OrderTimeline({ order }: Props) {
 
   const now = new Date();
   const deliveryPassed = order.deliveryDate ? new Date(order.deliveryDate) < now : false;
-  const isDelivered = order.stage === 'delivered' || order.status === 'delivered';
+  const isDelivered = order.stage === 'delivered';
 
   const events: TimelineEvent[] = [
-    {
-      label: t('timeline.created'),
-      value: formatDateTime(order.createdAt),
-      done: true,
-      accent: 'cyan',
-    },
+    { label: t('timeline.created'), value: formatDateTime(order.createdAt), done: true, accent: 'cyan' },
+    ...(order.designStartedAt ? [{ label: t('timeline.designStarted'), value: formatDateTime(order.designStartedAt), done: true, accent: 'violet' as const }] : []),
+    ...(order.designCompletedAt ? [{ label: t('timeline.designCompleted'), value: formatDateTime(order.designCompletedAt), done: true, accent: 'violet' as const }] : []),
+    ...(order.slicingStartedAt ? [{ label: t('timeline.slicingStarted'), value: formatDateTime(order.slicingStartedAt), done: true, accent: 'purple' as const }] : []),
+    ...(order.slicingCompletedAt ? [{ label: t('timeline.slicingCompleted'), value: formatDateTime(order.slicingCompletedAt), done: true, accent: 'purple' as const }] : []),
     ...(order.plannedStartDate && order.printStartTime ? [{
-      label: t('timeline.printStart'),
+      label: t('sched.startDate'),
       value: `${formatDate(order.plannedStartDate)} ${order.printStartTime}`,
-      done: !!order.actualStartTime,
+      done: !!order.printingStartedAt,
       accent: 'amber' as const,
     }] : []),
-    ...(order.actualStartTime ? [{
-      label: t('timeline.actualStart'),
-      value: formatDateTime(order.actualStartTime),
-      done: true,
-      accent: 'green' as const,
-    }] : []),
-    ...(order.printEndDate && order.printEndTime ? [{
-      label: t('timeline.printEnd'),
-      value: `${formatDate(order.printEndDate)} ${order.printEndTime}`,
-      done: !!order.actualFinishTime,
-      accent: 'amber' as const,
-    }] : []),
-    ...(order.actualFinishTime ? [{
-      label: t('timeline.actualFinish'),
-      value: formatDateTime(order.actualFinishTime),
-      done: true,
-      accent: 'green' as const,
-    }] : []),
+    ...(order.printingStartedAt ? [{ label: t('timeline.printingStarted'), value: formatDateTime(order.printingStartedAt), done: true, accent: 'cyan' as const }] : []),
+    ...(order.printingFinishedAt ? [{ label: t('timeline.printingFinished'), value: formatDateTime(order.printingFinishedAt), done: true, accent: 'teal' as const }] : []),
+    ...(order.postProcessingDoneAt ? [{ label: t('timeline.postProcessingDone'), value: formatDateTime(order.postProcessingDoneAt), done: true, accent: 'teal' as const }] : []),
+    ...(order.qualityCheckDoneAt ? [{ label: t('timeline.qualityCheckDone'), value: formatDateTime(order.qualityCheckDoneAt), done: true, accent: 'green' as const }] : []),
+    ...(order.readyForDeliveryAt ? [{ label: t('timeline.readyForDelivery'), value: formatDateTime(order.readyForDeliveryAt), done: true, accent: 'green' as const }] : []),
     {
       label: t('timeline.delivery'),
       value: formatDate(order.deliveryDate),
@@ -60,12 +46,7 @@ export default function OrderTimeline({ order }: Props) {
       late: deliveryPassed && !isDelivered,
       accent: deliveryPassed && !isDelivered ? 'red' : 'purple',
     },
-    ...(order.deliveredDate ? [{
-      label: t('timeline.delivered'),
-      value: formatDateTime(order.deliveredDate),
-      done: true,
-      accent: 'green' as const,
-    }] : []),
+    ...(order.deliveredDate ? [{ label: t('timeline.delivered'), value: formatDateTime(order.deliveredDate), done: true, accent: 'green' as const }] : []),
   ];
 
   const dotMap: Record<string, string> = {
@@ -74,6 +55,8 @@ export default function OrderTimeline({ order }: Props) {
     amber:  'bg-amber-500 border-amber-500',
     red:    'bg-red-500 border-red-500',
     purple: 'bg-violet-500 border-violet-500',
+    violet: 'bg-indigo-500 border-indigo-500',
+    teal:   'bg-teal-500 border-teal-500',
   };
   const textMap: Record<string, string> = {
     cyan:   'text-cyan-400',
@@ -81,6 +64,8 @@ export default function OrderTimeline({ order }: Props) {
     amber:  'text-amber-400',
     red:    'text-red-400',
     purple: 'text-violet-400',
+    violet: 'text-indigo-400',
+    teal:   'text-teal-400',
   };
 
   return (

@@ -1,26 +1,22 @@
 'use client';
 import { useState, useMemo } from 'react';
-import { BarChart3 } from 'lucide-react';
+import { BarChart3, Palette, Layers } from 'lucide-react';
 import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer
 } from 'recharts';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import { StockStatusBadge } from '@/components/ui/Badge';
 import { useAllOrders } from '@/hooks/useOrders';
+import { useFilamentStock } from '@/hooks/useFilamentStock';
 import { calcMonthlyReport } from '@/utils/calculations';
-import { formatCurrency, formatGrams } from '@/utils/formatters';
+import { formatCurrency, formatGrams, filamentStatus, MATERIAL_TYPE_LABELS } from '@/utils/formatters';
 import { useTranslation } from '@/hooks/useTranslation';
-import type { BusinessLabel } from '@/types';
+import type { OrderCategory } from '@/types';
+import type { TranslationKey } from '@/i18n/translations';
 
-const ROBOFAB_COLOR = '#06B6D4';
-const TECHNOVA_COLOR = '#8B5CF6';
-
-const SECTION_KEYS = [
-  { value: 'printing3d',         key: 'section.printing3d' as const },
-  { value: 'design',             key: 'section.design' as const },
-  { value: 'pcbPrinting',        key: 'section.pcbPrinting' as const },
-  { value: 'outsourcedPrinting', key: 'section.outsourcedPrinting' as const },
-];
+const CHANDELIER_COLOR = '#F59E0B';
+const HOLDER_COLOR = '#06B6D4';
 
 const MONTH_KEYS = [
   'month.1','month.2','month.3','month.4','month.5','month.6',
@@ -36,13 +32,14 @@ function SummaryCard({ label, value, colorClass }: { label: string; value: strin
   );
 }
 
-function LabelSummaryPanel({ name, color, accentClass, gramsByLabel, totalRevenue, totalPaid, totalRemaining }: {
-  name: string; color: string; accentClass: string;
-  gramsByLabel: { robofab: number; techNova: number };
-  totalRevenue: number; totalPaid: number; totalRemaining: number;
+function CategorySummaryPanel({ name, color, accentClass, orders, t }: {
+  name: string; color: string; accentClass: string; orders: ReturnType<typeof useAllOrders>['orders']; t: (k: TranslationKey) => string;
 }) {
-  const { t } = useTranslation();
-  const grams = name === 'RoboFab' ? gramsByLabel.robofab : gramsByLabel.techNova;
+  const revenue = orders.reduce((s, o) => s + (o.price || 0), 0);
+  const paid = orders.reduce((s, o) => s + (o.paidAmount || 0), 0);
+  const remaining = orders.reduce((s, o) => s + (o.remainingAmount || 0), 0);
+  const grams = orders.reduce((s, o) => s + (o.actualGrams ?? o.estimatedGrams ?? 0), 0);
+
   return (
     <div className={`bg-slate-900 border border-slate-800 rounded-2xl p-5 ${accentClass}`}>
       <div className="flex items-center gap-3 mb-5">
@@ -51,20 +48,24 @@ function LabelSummaryPanel({ name, color, accentClass, gramsByLabel, totalRevenu
       </div>
       <div className="space-y-3">
         <div className="flex items-center justify-between py-2 border-b border-slate-800">
+          <span className="text-slate-500 text-sm">{t('reports.totalOrders')}</span>
+          <span className="font-bold font-mono text-sm text-slate-200">{orders.length}</span>
+        </div>
+        <div className="flex items-center justify-between py-2 border-b border-slate-800">
           <span className="text-slate-500 text-sm">{t('dash.gramsThisMonth')}</span>
           <span className="font-bold font-mono text-sm" style={{ color }}>{grams.toLocaleString()} {t('common.grams')}</span>
         </div>
         <div className="flex items-center justify-between">
           <span className="text-slate-500 text-sm">{t('dash.revenue')}</span>
-          <span className="text-slate-200 font-semibold">{formatCurrency(totalRevenue)} {t('common.sar')}</span>
+          <span className="text-slate-200 font-semibold">{formatCurrency(revenue)} {t('common.sar')}</span>
         </div>
         <div className="flex items-center justify-between">
           <span className="text-slate-500 text-sm">{t('dash.paid')}</span>
-          <span className="text-green-400 font-semibold">{formatCurrency(totalPaid)} {t('common.sar')}</span>
+          <span className="text-green-400 font-semibold">{formatCurrency(paid)} {t('common.sar')}</span>
         </div>
         <div className="flex items-center justify-between">
           <span className="text-slate-500 text-sm">{t('dash.remaining')}</span>
-          <span className="text-amber-400 font-semibold">{formatCurrency(totalRemaining)} {t('common.sar')}</span>
+          <span className="text-amber-400 font-semibold">{formatCurrency(remaining)} {t('common.sar')}</span>
         </div>
       </div>
     </div>
@@ -75,40 +76,38 @@ const selectCls = 'bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 tex
 
 export default function ReportsPage() {
   const { orders, loading } = useAllOrders();
+  const { filaments } = useFilamentStock();
   const { t, isRTL } = useTranslation();
   const now = new Date();
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [year, setYear] = useState(now.getFullYear());
-  const [sectionFilter, setSectionFilter] = useState('');
-  const [labelFilter, setLabelFilter] = useState<BusinessLabel | ''>('');
+  const [categoryFilter, setCategoryFilter] = useState<OrderCategory | ''>('');
 
-  const filteredOrders = useMemo(() => orders.filter(o =>
-    (!sectionFilter || o.section === sectionFilter) && (!labelFilter || o.businessLabel === labelFilter)
-  ), [orders, sectionFilter, labelFilter]);
-
+  const filteredOrders = useMemo(() => orders.filter(o => !categoryFilter || o.category === categoryFilter), [orders, categoryFilter]);
   const report = useMemo(() => calcMonthlyReport(filteredOrders, year, month), [filteredOrders, year, month]);
 
-  const robofabMonthOrders = useMemo(() => filteredOrders.filter(o => {
+  const monthOrders = useMemo(() => filteredOrders.filter(o => {
     const d = new Date(o.createdAt);
-    return o.businessLabel === 'RoboFab' && d.getFullYear() === year && d.getMonth() + 1 === month;
+    return d.getFullYear() === year && d.getMonth() + 1 === month;
   }), [filteredOrders, year, month]);
 
-  const techNovaMonthOrders = useMemo(() => filteredOrders.filter(o => {
-    const d = new Date(o.createdAt);
-    return o.businessLabel === 'TechNova' && d.getFullYear() === year && d.getMonth() + 1 === month;
-  }), [filteredOrders, year, month]);
-
-  const robofabRevenue  = useMemo(() => robofabMonthOrders.reduce((s, o) => s + (o.price || 0), 0), [robofabMonthOrders]);
-  const techNovaRevenue = useMemo(() => techNovaMonthOrders.reduce((s, o) => s + (o.price || 0), 0), [techNovaMonthOrders]);
-  const robofabPaid     = useMemo(() => robofabMonthOrders.reduce((s, o) => s + (o.paidAmount || 0), 0), [robofabMonthOrders]);
-  const techNovaPaid    = useMemo(() => techNovaMonthOrders.reduce((s, o) => s + (o.paidAmount || 0), 0), [techNovaMonthOrders]);
-  const robofabRemaining  = useMemo(() => robofabMonthOrders.reduce((s, o) => s + (o.remainingAmount || 0), 0), [robofabMonthOrders]);
-  const techNovaRemaining = useMemo(() => techNovaMonthOrders.reduce((s, o) => s + (o.remainingAmount || 0), 0), [techNovaMonthOrders]);
+  const chandelierMonthOrders = useMemo(() => monthOrders.filter(o => o.category === 'chandelier'), [monthOrders]);
+  const holderMonthOrders     = useMemo(() => monthOrders.filter(o => o.category === 'holder'), [monthOrders]);
 
   const machineChartData = useMemo(() =>
-    Object.entries(report.gramsByMachine).map(([name, vals]) => ({ name, robofab: vals.robofab, techNova: vals.techNova })),
+    Object.entries(report.gramsByMachine).map(([name, grams]) => ({ name, grams })),
     [report]
   );
+  const colorChartData = useMemo(() =>
+    Object.entries(report.gramsByColor).sort((a, b) => b[1] - a[1]).slice(0, 10).map(([name, grams]) => ({ name, grams })),
+    [report]
+  );
+  const materialChartData = useMemo(() =>
+    Object.entries(report.gramsByMaterial).map(([name, grams]) => ({ name: MATERIAL_TYPE_LABELS[name as keyof typeof MATERIAL_TYPE_LABELS] || name, grams })),
+    [report]
+  );
+
+  const lowStockItems = useMemo(() => filaments.filter(f => filamentStatus(f.currentGrams, f.minStockLevel) !== 'available'), [filaments]);
 
   const YEARS = Array.from({ length: 5 }, (_, i) => now.getFullYear() - i);
 
@@ -139,44 +138,34 @@ export default function ReportsPage() {
               </select>
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-slate-500">{t('reports.section')}</label>
-              <select value={sectionFilter} onChange={e => setSectionFilter(e.target.value)} className={selectCls}>
+              <label className="text-xs text-slate-500">{t('reports.category')}</label>
+              <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value as OrderCategory | '')} className={selectCls}>
                 <option value="">{t('common.all')}</option>
-                {SECTION_KEYS.map(({ value, key }) => <option key={value} value={value}>{t(key)}</option>)}
-              </select>
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-slate-500">{t('reports.businessLabel')}</label>
-              <select value={labelFilter} onChange={e => setLabelFilter(e.target.value as any)} className={selectCls}>
-                <option value="">{t('common.all')}</option>
-                <option value="RoboFab">RoboFab</option>
-                <option value="TechNova">Tech Nova</option>
+                <option value="chandelier">{t('cat.chandelier')}</option>
+                <option value="holder">{t('cat.holder')}</option>
               </select>
             </div>
           </div>
         </div>
 
-        {/* RoboFab vs TechNova panels */}
+        {/* Chandelier vs Holder panels */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <LabelSummaryPanel name="RoboFab" color={ROBOFAB_COLOR} accentClass="panel-cyan"
-            gramsByLabel={report.gramsByLabel} totalRevenue={robofabRevenue} totalPaid={robofabPaid} totalRemaining={robofabRemaining} />
-          <LabelSummaryPanel name="Tech Nova" color={TECHNOVA_COLOR} accentClass="panel-purple"
-            gramsByLabel={report.gramsByLabel} totalRevenue={techNovaRevenue} totalPaid={techNovaPaid} totalRemaining={techNovaRemaining} />
+          <CategorySummaryPanel name={t('cat.chandelier')} color={CHANDELIER_COLOR} accentClass="panel-amber" orders={chandelierMonthOrders} t={t} />
+          <CategorySummaryPanel name={t('cat.holder')} color={HOLDER_COLOR} accentClass="panel-cyan" orders={holderMonthOrders} t={t} />
         </div>
 
         {/* Summary stats grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <SummaryCard label={t('reports.totalOrders')}    value={report.totalOrders}                                colorClass="text-slate-200" />
-          <SummaryCard label={t('reports.totalRevenue')}   value={`${formatCurrency(report.totalRevenue)} ${t('common.sar')}`}   colorClass="text-blue-400" />
-          <SummaryCard label={t('reports.totalPaid')}      value={`${formatCurrency(report.totalPaid)} ${t('common.sar')}`}       colorClass="text-green-400" />
-          <SummaryCard label={t('reports.totalRemaining')} value={`${formatCurrency(report.totalRemaining)} ${t('common.sar')}`}  colorClass="text-orange-400" />
-          <SummaryCard label={t('reports.totalGrams')}     value={formatGrams(report.totalGrams)}                   colorClass="text-blue-400" />
-          <SummaryCard label={t('reports.robofabGrams')}   value={formatGrams(report.gramsByLabel.robofab)}          colorClass="text-cyan-400" />
-          <SummaryCard label={t('reports.technovaGrams')}  value={formatGrams(report.gramsByLabel.techNova)}         colorClass="text-violet-400" />
-          <SummaryCard label={t('reports.lateOrders')}     value={report.lateOrders}                                colorClass="text-red-400" />
-          <SummaryCard label={t('reports.completedOrders')} value={report.completedOrders}                          colorClass="text-green-400" />
-          <SummaryCard label={t('reports.deliveredOrders')} value={report.deliveredOrders}                          colorClass="text-emerald-400" />
-          <SummaryCard label={t('reports.missingGrams')}   value={report.missingGramsOrders}                        colorClass="text-amber-400" />
+          <SummaryCard label={t('reports.totalOrders')}     value={report.totalOrders}                                              colorClass="text-slate-200" />
+          <SummaryCard label={t('reports.totalRevenue')}    value={`${formatCurrency(report.totalRevenue)} ${t('common.sar')}`}     colorClass="text-blue-400" />
+          <SummaryCard label={t('reports.totalPaid')}       value={`${formatCurrency(report.totalPaid)} ${t('common.sar')}`}        colorClass="text-green-400" />
+          <SummaryCard label={t('reports.totalRemaining')}  value={`${formatCurrency(report.totalRemaining)} ${t('common.sar')}`}   colorClass="text-orange-400" />
+          <SummaryCard label={t('reports.totalGrams')}      value={formatGrams(report.totalGrams)}                                  colorClass="text-blue-400" />
+          <SummaryCard label={t('cat.chandelier')}          value={report.chandelierOrders}                                          colorClass="text-amber-400" />
+          <SummaryCard label={t('cat.holder')}              value={report.holderOrders}                                              colorClass="text-cyan-400" />
+          <SummaryCard label={t('reports.lateOrders')}      value={report.lateOrders}                                                colorClass="text-red-400" />
+          <SummaryCard label={t('reports.completedOrders')} value={report.completedOrders}                                           colorClass="text-green-400" />
+          <SummaryCard label={t('reports.deliveredOrders')} value={report.deliveredOrders}                                           colorClass="text-emerald-400" />
         </div>
 
         {/* Machine usage chart */}
@@ -186,54 +175,80 @@ export default function ReportsPage() {
               <BarChart3 className="w-4 h-4 text-blue-400" />
               {t('reports.machineUsage')}
             </h3>
-            <ResponsiveContainer width="100%" height={280}>
+            <ResponsiveContainer width="100%" height={260}>
               <BarChart data={machineChartData}>
                 <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
                 <Tooltip
                   contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: 12, color: '#e2e8f0' }}
-                  formatter={(v: unknown, name: unknown) => [`${Number(v).toLocaleString()} ${t('common.grams')}`, name === 'robofab' ? 'RoboFab' : 'Tech Nova'] as [string, string]}
+                  formatter={(v: unknown) => [`${Number(v).toLocaleString()} ${t('common.grams')}`, t('reports.totalGrams')] as [string, string]}
                 />
-                <Legend formatter={(v) => v === 'robofab' ? 'RoboFab' : 'Tech Nova'} wrapperStyle={{ color: '#94a3b8', fontSize: 12 }} />
-                <Bar dataKey="robofab"  name="robofab"  fill={ROBOFAB_COLOR}  radius={[0, 0, 0, 0]} stackId="a" />
-                <Bar dataKey="techNova" name="techNova" fill={TECHNOVA_COLOR} radius={[3, 3, 0, 0]} stackId="a" />
+                <Bar dataKey="grams" fill="#3B82F6" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         )}
 
-        {/* Machine detail table */}
-        {Object.keys(report.gramsByMachine).length > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {colorChartData.length > 0 && (
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
+              <h3 className="text-slate-300 font-semibold mb-5 flex items-center gap-2 text-sm">
+                <Palette className="w-4 h-4 text-violet-400" />
+                {t('reports.byColor')}
+              </h3>
+              <ResponsiveContainer width="100%" height={240}>
+                <BarChart data={colorChartData} layout="vertical" margin={{ left: 20 }}>
+                  <XAxis type="number" tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <YAxis type="category" dataKey="name" tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={false} tickLine={false} width={90} />
+                  <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: 12, color: '#e2e8f0' }} />
+                  <Bar dataKey="grams" fill="#8B5CF6" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+          {materialChartData.length > 0 && (
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
+              <h3 className="text-slate-300 font-semibold mb-5 flex items-center gap-2 text-sm">
+                <Layers className="w-4 h-4 text-cyan-400" />
+                {t('reports.byMaterial')}
+              </h3>
+              <ResponsiveContainer width="100%" height={240}>
+                <BarChart data={materialChartData}>
+                  <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: 12, color: '#e2e8f0' }} />
+                  <Bar dataKey="grams" fill="#06B6D4" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </div>
+
+        {/* Low stock table */}
+        {lowStockItems.length > 0 && (
           <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
             <div className="px-6 py-4 border-b border-slate-800">
-              <h3 className="text-slate-200 font-semibold text-sm">{t('reports.machineDetail')}</h3>
-              <p className="text-slate-500 text-xs mt-0.5">{t(MONTH_KEYS[month - 1])} {year}</p>
+              <h3 className="text-slate-200 font-semibold text-sm">{t('reports.lowStockItems')}</h3>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-slate-800 bg-slate-800/40">
-                    <th className={`px-6 py-3 text-slate-400 font-medium text-xs uppercase tracking-wide ${isRTL ? 'text-right' : 'text-left'}`}>{t('reports.machine')}</th>
-                    <th className="px-4 py-3 text-cyan-400 font-medium text-xs text-center">RoboFab ({t('common.grams')})</th>
-                    <th className="px-4 py-3 text-violet-400 font-medium text-xs text-center">Tech Nova ({t('common.grams')})</th>
-                    <th className="px-4 py-3 text-slate-400 font-medium text-xs text-center">{t('common.total')} ({t('common.grams')})</th>
+                    <th className={`px-6 py-3 text-slate-400 font-medium text-xs uppercase tracking-wide ${isRTL ? 'text-right' : 'text-left'}`}>{t('stock.filamentName')}</th>
+                    <th className="px-4 py-3 text-slate-400 font-medium text-xs text-center">{t('stock.currentGrams')}</th>
+                    <th className="px-4 py-3 text-slate-400 font-medium text-xs text-center">{t('stock.minStockLevel')}</th>
+                    <th className="px-4 py-3 text-slate-400 font-medium text-xs text-center">{t('stock.status')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/60">
-                  {Object.entries(report.gramsByMachine).map(([machine, vals]) => (
-                    <tr key={machine} className="hover:bg-slate-800/40 transition-colors">
-                      <td className={`px-6 py-3 text-slate-200 font-medium ${isRTL ? 'text-right' : 'text-left'}`}>{machine}</td>
-                      <td className="px-4 py-3 text-center text-cyan-400 font-mono text-sm">{vals.robofab.toFixed(1)}</td>
-                      <td className="px-4 py-3 text-center text-violet-400 font-mono text-sm">{vals.techNova.toFixed(1)}</td>
-                      <td className="px-4 py-3 text-center text-slate-200 font-mono font-semibold text-sm">{vals.total.toFixed(1)}</td>
+                  {lowStockItems.map(f => (
+                    <tr key={f.id} className="hover:bg-slate-800/40 transition-colors">
+                      <td className={`px-6 py-3 text-slate-200 font-medium ${isRTL ? 'text-right' : 'text-left'}`}>{f.filamentName} — {f.colorName}</td>
+                      <td className="px-4 py-3 text-center text-slate-300 font-mono text-sm">{f.currentGrams}g</td>
+                      <td className="px-4 py-3 text-center text-slate-500 font-mono text-sm">{f.minStockLevel}g</td>
+                      <td className="px-4 py-3 text-center"><StockStatusBadge status={filamentStatus(f.currentGrams, f.minStockLevel)} /></td>
                     </tr>
                   ))}
-                  <tr className="border-t border-slate-700 bg-slate-800/60 font-semibold">
-                    <td className={`px-6 py-3 text-slate-300 ${isRTL ? 'text-right' : 'text-left'}`}>{t('common.total')}</td>
-                    <td className="px-4 py-3 text-center text-cyan-400 font-mono">{report.gramsByLabel.robofab.toFixed(1)}</td>
-                    <td className="px-4 py-3 text-center text-violet-400 font-mono">{report.gramsByLabel.techNova.toFixed(1)}</td>
-                    <td className="px-4 py-3 text-center text-slate-100 font-mono">{report.totalGrams.toFixed(1)}</td>
-                  </tr>
                 </tbody>
               </table>
             </div>

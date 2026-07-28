@@ -1,10 +1,9 @@
 import {
   collection, doc, addDoc, updateDoc, deleteDoc,
-  getDocs, getDoc, query, where, orderBy, Timestamp,
-  serverTimestamp, writeBatch, limit
+  getDocs, getDoc, query, where, orderBy,
 } from 'firebase/firestore';
 import { db } from './firebase';
-import type { Order, Machine, Client, AppUser } from '@/types';
+import type { Order, Machine, Client, AppUser, OrderCategory } from '@/types';
 import { sanitizeForFirestore } from '@/utils/sanitize';
 
 // ─── Orders ─────────────────────────────────────────────────────────────────
@@ -39,9 +38,9 @@ export async function getOrder(id: string): Promise<Order | null> {
   return { id: snap.id, ...snap.data() } as Order;
 }
 
-export async function getOrders(section?: string): Promise<Order[]> {
-  let q = section
-    ? query(collection(db, 'orders'), where('section', '==', section), orderBy('createdAt', 'desc'))
+export async function getOrders(category?: OrderCategory): Promise<Order[]> {
+  const q = category
+    ? query(collection(db, 'orders'), where('category', '==', category), orderBy('createdAt', 'desc'))
     : query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
   const snap = await getDocs(q);
   return snap.docs.map(d => ({ id: d.id, ...d.data() } as Order));

@@ -1,18 +1,16 @@
 'use client';
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight, Printer, Pen, CircuitBoard, Truck } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Lightbulb, CircleDot, Printer } from 'lucide-react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { useAllOrders } from '@/hooks/useOrders';
 import { useTranslation } from '@/hooks/useTranslation';
-import type { Order, OrderSection } from '@/types';
+import type { Order, OrderCategory } from '@/types';
 
-const SECTION_CONFIG: Record<OrderSection, { color: string; icon: typeof Printer }> = {
-  printing3d:         { color: 'bg-blue-500/10 border-blue-500/20 text-blue-400',   icon: Printer },
-  design:             { color: 'bg-violet-500/10 border-violet-500/20 text-violet-400', icon: Pen },
-  pcbPrinting:        { color: 'bg-green-500/10 border-green-500/20 text-green-400',  icon: CircuitBoard },
-  outsourcedPrinting: { color: 'bg-amber-500/10 border-amber-500/20 text-amber-400',  icon: Truck },
+const CATEGORY_CONFIG: Record<OrderCategory, { color: string; icon: typeof Lightbulb }> = {
+  chandelier: { color: 'bg-amber-500/10 border-amber-500/20 text-amber-400', icon: Lightbulb },
+  holder:     { color: 'bg-cyan-500/10 border-cyan-500/20 text-cyan-400',    icon: CircleDot },
 };
 
 const DAY_NAMES_AR = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
@@ -31,9 +29,8 @@ function isSameDay(date: Date, dateStr?: string): boolean {
   return d.getFullYear() === date.getFullYear() && d.getMonth() === date.getMonth() && d.getDate() === date.getDate();
 }
 
-function sectionHref(o: Order): string {
-  const map: Record<OrderSection, string> = { printing3d: 'printing', design: 'design', pcbPrinting: 'pcb', outsourcedPrinting: 'outsourced' };
-  return `/${map[o.section]}/${o.id}`;
+function orderHref(o: Order): string {
+  return `/orders/${o.category}/${o.id}`;
 }
 
 export default function CalendarPage() {
@@ -47,8 +44,8 @@ export default function CalendarPage() {
   }, [weekOffset]);
 
   const dayOrders = useMemo(() => days.map(day => ({
-    deliveries: orders.filter(o => isSameDay(day, o.deliveryDate) && o.status !== 'cancelled'),
-    printStart: orders.filter(o => o.section === 'printing3d' && isSameDay(day, o.plannedStartDate) && o.status !== 'cancelled'),
+    deliveries: orders.filter(o => isSameDay(day, o.deliveryDate) && o.stage !== 'cancelled'),
+    printStart: orders.filter(o => isSameDay(day, o.plannedStartDate) && o.stage !== 'cancelled'),
   })), [orders, days]);
 
   const todayIdx = days.findIndex(d => {
@@ -114,10 +111,10 @@ export default function CalendarPage() {
 
                   <div className="flex-1 p-1.5 space-y-1 overflow-y-auto">
                     {deliveries.map(o => {
-                      const cfg = SECTION_CONFIG[o.section];
+                      const cfg = CATEGORY_CONFIG[o.category];
                       const Icon = cfg.icon;
                       return (
-                        <Link key={`d-${o.id}`} href={sectionHref(o)}>
+                        <Link key={`d-${o.id}`} href={orderHref(o)}>
                           <div className={`text-xs rounded-lg px-1.5 py-1 border truncate flex items-center gap-1 hover:opacity-70 transition-opacity ${cfg.color}`}>
                             <Icon className="w-2.5 h-2.5 flex-shrink-0" />
                             <span className="truncate">{o.orderName}</span>
@@ -126,7 +123,7 @@ export default function CalendarPage() {
                       );
                     })}
                     {printStart.map(o => (
-                      <Link key={`p-${o.id}`} href={`/printing/${o.id}`}>
+                      <Link key={`p-${o.id}`} href={orderHref(o)}>
                         <div className="text-xs rounded-lg px-1.5 py-1 border border-slate-700 bg-slate-800 text-slate-500 truncate flex items-center gap-1 hover:opacity-70 transition-opacity">
                           <Printer className="w-2.5 h-2.5 flex-shrink-0" />
                           <span className="truncate">▶ {o.orderName}</span>
@@ -151,12 +148,12 @@ export default function CalendarPage() {
 
         {/* Legend */}
         <div className="flex flex-wrap gap-3 pt-2">
-          {Object.entries(SECTION_CONFIG).map(([sec, cfg]) => {
+          {(Object.entries(CATEGORY_CONFIG) as [OrderCategory, typeof CATEGORY_CONFIG['chandelier']][]).map(([cat, cfg]) => {
             const Icon = cfg.icon;
             return (
-              <div key={sec} className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border ${cfg.color}`}>
+              <div key={cat} className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border ${cfg.color}`}>
                 <Icon className="w-3 h-3" />
-                <span>{sec === 'printing3d' ? '3D' : sec === 'design' ? 'تصميم' : sec === 'pcbPrinting' ? 'PCB' : 'خارجي'}</span>
+                <span>{t(cat === 'chandelier' ? 'cat.chandelier' : 'cat.holder')}</span>
               </div>
             );
           })}

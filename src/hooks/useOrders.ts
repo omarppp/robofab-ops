@@ -1,17 +1,17 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { collection, query, where, orderBy, onSnapshot, QueryConstraint } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import type { Order, OrderSection } from '@/types';
+import type { Order, OrderCategory } from '@/types';
 
-export function useOrders(section?: OrderSection) {
+export function useOrders(category?: OrderCategory) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const constraints: QueryConstraint[] = [orderBy('createdAt', 'desc')];
-    if (section) constraints.unshift(where('section', '==', section));
+    if (category) constraints.unshift(where('category', '==', category));
     const q = query(collection(db, 'orders'), ...constraints);
 
     const unsub = onSnapshot(q, (snap) => {
@@ -23,7 +23,7 @@ export function useOrders(section?: OrderSection) {
     });
 
     return unsub;
-  }, [section]);
+  }, [category]);
 
   return { orders, loading, error };
 }

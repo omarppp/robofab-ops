@@ -4,9 +4,9 @@ import { Cpu, Play, Clock, Calendar, ArrowLeft } from 'lucide-react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { useMachines } from '@/hooks/useMachines';
-import { useOrders } from '@/hooks/useOrders';
+import { useAllOrders } from '@/hooks/useOrders';
 import { useTranslation } from '@/hooks/useTranslation';
-import { getEffectiveStage } from '@/utils/stages';
+import { isTerminalStage } from '@/utils/stages';
 import { formatDate } from '@/utils/dateUtils';
 import type { Order } from '@/types';
 
@@ -17,23 +17,24 @@ function jobTimeRange(o: Order): string {
   return `${start} ${end}`.trim();
 }
 
+function orderHref(o: Order): string {
+  return `/orders/${o.category}/${o.id}`;
+}
+
 export default function MachineSchedulePage() {
   const { t } = useTranslation();
   const { machines, loading: mLoading } = useMachines();
-  const { orders, loading: oLoading } = useOrders('printing3d');
+  const { orders, loading: oLoading } = useAllOrders();
 
   const loading = mLoading || oLoading;
 
-  const activeOrders = orders.filter(o => {
-    const s = getEffectiveStage(o);
-    return s !== 'delivered' && s !== 'cancelled';
-  });
+  const activeOrders = orders.filter(o => !isTerminalStage(o.stage));
 
   const getMachineJobs = (machineId: string) => {
     const jobs = activeOrders.filter(o => o.machineId === machineId);
-    const printing = jobs.filter(o => getEffectiveStage(o) === 'printing');
-    const scheduled = jobs.filter(o => getEffectiveStage(o) === 'scheduledPrinting');
-    const other = jobs.filter(o => !['printing', 'scheduledPrinting'].includes(getEffectiveStage(o)));
+    const printing = jobs.filter(o => o.stage === 'printing');
+    const scheduled = jobs.filter(o => o.stage === 'scheduledPrinting');
+    const other = jobs.filter(o => !['printing', 'scheduledPrinting'].includes(o.stage));
     return { printing, scheduled, other };
   };
 
@@ -95,7 +96,7 @@ export default function MachineSchedulePage() {
                   </div>
 
                   {printing.map(o => (
-                    <Link key={o.id} href={`/printing/${o.id}`} className="block mb-2">
+                    <Link key={o.id} href={orderHref(o)} className="block mb-2">
                       <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-2.5 hover:border-green-500/40 transition-colors">
                         <div className="flex items-center gap-1.5 mb-1">
                           <Play className="w-3 h-3 text-green-400 flex-shrink-0" />
@@ -115,7 +116,7 @@ export default function MachineSchedulePage() {
                     <div className="mt-2">
                       <p className="text-xs text-slate-600 mb-1.5">{t('mschedule.upcoming')}</p>
                       {scheduled.map(o => (
-                        <Link key={o.id} href={`/printing/${o.id}`} className="block mb-1.5">
+                        <Link key={o.id} href={orderHref(o)} className="block mb-1.5">
                           <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-2 hover:border-blue-500/40 transition-colors">
                             <div className="flex items-center gap-1.5 mb-0.5">
                               <Calendar className="w-3 h-3 text-blue-400 flex-shrink-0" />

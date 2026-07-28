@@ -2,23 +2,23 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  LayoutDashboard, Printer, Pen, CircuitBoard, Truck, Users, Cpu,
+  LayoutDashboard, Lightbulb, CircleDot, ListOrdered, Layers, Users, Cpu,
   BarChart3, Settings, X, CalendarDays, Clock, Zap,
 } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 
 const NAV_ITEMS = [
-  { href: '/dashboard',         key: 'nav.dashboard' as const, icon: LayoutDashboard, group: 'main' },
-  { href: '/printing',          key: 'nav.printing' as const,  icon: Printer,         group: 'orders' },
-  { href: '/design',            key: 'nav.design' as const,    icon: Pen,             group: 'orders' },
-  { href: '/pcb',               key: 'nav.pcb' as const,       icon: CircuitBoard,    group: 'orders' },
-  { href: '/outsourced',        key: 'nav.outsourced' as const, icon: Truck,          group: 'orders' },
-  { href: '/clients',           key: 'nav.clients' as const,   icon: Users,           group: 'manage' },
-  { href: '/machines',          key: 'nav.machines' as const,  icon: Cpu,             group: 'manage' },
-  { href: '/machines/schedule', key: 'nav.schedule' as const,  icon: Clock,           group: 'manage' },
-  { href: '/calendar',          key: 'nav.calendar' as const,  icon: CalendarDays,    group: 'manage' },
-  { href: '/reports',           key: 'nav.reports' as const,   icon: BarChart3,       group: 'system' },
-  { href: '/settings',          key: 'nav.settings' as const,  icon: Settings,        group: 'system' },
+  { href: '/dashboard',           key: 'nav.dashboard' as const,     icon: LayoutDashboard, group: 'main' },
+  { href: '/orders/chandelier',   key: 'nav.chandelier' as const,    icon: Lightbulb,        group: 'orders' },
+  { href: '/orders/holder',       key: 'nav.holder' as const,        icon: CircleDot,        group: 'orders' },
+  { href: '/orders',              key: 'nav.allOrders' as const,     icon: ListOrdered,      group: 'orders' },
+  { href: '/filament-stock',      key: 'nav.filamentStock' as const, icon: Layers,           group: 'manage' },
+  { href: '/machines',            key: 'nav.machines' as const,      icon: Cpu,              group: 'manage' },
+  { href: '/machines/schedule',   key: 'nav.schedule' as const,      icon: Clock,            group: 'manage' },
+  { href: '/calendar',            key: 'nav.calendar' as const,      icon: CalendarDays,     group: 'manage' },
+  { href: '/clients',             key: 'nav.clients' as const,       icon: Users,            group: 'manage' },
+  { href: '/reports',             key: 'nav.reports' as const,       icon: BarChart3,        group: 'system' },
+  { href: '/settings',            key: 'nav.settings' as const,      icon: Settings,         group: 'system' },
 ];
 
 const GROUP_LABELS: Record<string, { ar: string; en: string }> = {

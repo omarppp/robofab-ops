@@ -1,42 +1,59 @@
-import type { Order, MonthlyReport, DashboardStats, BusinessLabelStats, GramAllocation } from '@/types';
-import { isLate, isMissingGrams, isToday, isThisWeek } from './dateUtils';
+import type { Order, MonthlyReport, DashboardStats, CategoryStats, OrderCategory } from '@/types';
+import { isLate, isToday, isThisWeek } from './dateUtils';
+import { isTerminalStage } from './stages';
 
 export function calcRemaining(price: number, paid: number): number {
   return Math.max(0, price - paid);
 }
 
 export function getEffectiveGrams(order: Order): number {
-  if (order.section !== 'printing3d') return 0;
-  if (order.splitGrams && order.gramAllocations && order.gramAllocations.length > 0) {
-    return order.gramAllocations.reduce((sum, a) => sum + a.grams, 0);
-  }
-  return order.grams || 0;
+  return order.actualGrams ?? order.estimatedGrams ?? 0;
 }
 
-export function getGramsByMachineAndLabel(orders: Order[]): Record<string, { robofab: number; techNova: number; total: number }> {
-  const result: Record<string, { robofab: number; techNova: number; total: number }> = {};
-
+export function getGramsByMachine(orders: Order[]): Record<string, number> {
+  const result: Record<string, number> = {};
   for (const order of orders) {
-    if (order.section !== 'printing3d') continue;
-    if (order.status === 'cancelled') continue;
-
-    if (order.splitGrams && order.gramAllocations && order.gramAllocations.length > 0) {
-      for (const alloc of order.gramAllocations) {
-        const key = alloc.machineName || alloc.machineId || 'Unknown';
-        if (!result[key]) result[key] = { robofab: 0, techNova: 0, total: 0 };
-        if (alloc.businessLabel === 'RoboFab') result[key].robofab += alloc.grams;
-        else result[key].techNova += alloc.grams;
-        result[key].total += alloc.grams;
-      }
-    } else if (order.grams && order.grams > 0) {
-      const key = order.machineName || order.machineId || 'Unknown';
-      if (!result[key]) result[key] = { robofab: 0, techNova: 0, total: 0 };
-      if (order.businessLabel === 'RoboFab') result[key].robofab += order.grams;
-      else result[key].techNova += order.grams;
-      result[key].total += order.grams;
-    }
+    if (order.stage === 'cancelled') continue;
+    const grams = getEffectiveGrams(order);
+    if (!grams) continue;
+    const key = order.machineName || order.machineId || 'Unknown';
+    result[key] = (result[key] || 0) + grams;
   }
+  return result;
+}
 
+export function getGramsByColor(orders: Order[]): Record<string, number> {
+  const result: Record<string, number> = {};
+  for (const order of orders) {
+    if (order.stage === 'cancelled') continue;
+    const grams = getEffectiveGrams(order);
+    if (!grams || !order.filamentColorName) continue;
+    const key = order.filamentColorName;
+    result[key] = (result[key] || 0) + grams;
+  }
+  return result;
+}
+
+export function getGramsByMaterial(orders: Order[]): Record<string, number> {
+  const result: Record<string, number> = {};
+  for (const order of orders) {
+    if (order.stage === 'cancelled') continue;
+    const grams = getEffectiveGrams(order);
+    if (!grams || !order.materialType) continue;
+    const key = order.materialType;
+    result[key] = (result[key] || 0) + grams;
+  }
+  return result;
+}
+
+export function getGramsByCategory(orders: Order[]): { chandelier: number; holder: number } {
+  const result = { chandelier: 0, holder: 0 };
+  for (const order of orders) {
+    if (order.stage === 'cancelled') continue;
+    const grams = getEffectiveGrams(order);
+    if (!grams) continue;
+    result[order.category] += grams;
+  }
   return result;
 }
 
@@ -46,53 +63,42 @@ export function calcMonthlyReport(orders: Order[], year: number, month: number):
     return d.getFullYear() === year && d.getMonth() + 1 === month;
   });
 
-  const gramsByMachine = getGramsByMachineAndLabel(filtered);
-  const totalGrams = Object.values(gramsByMachine).reduce((s, v) => s + v.total, 0);
-  const gramsByLabel = Object.values(gramsByMachine).reduce(
-    (acc, v) => ({ robofab: acc.robofab + v.robofab, techNova: acc.techNova + v.techNova }),
-    { robofab: 0, techNova: 0 }
-  );
+  const gramsByMachine = getGramsByMachine(filtered);
+  const totalGrams = Object.values(gramsByMachine).reduce((s, v) => s + v, 0);
 
   return {
     month, year,
     totalOrders: filtered.length,
+    chandelierOrders: filtered.filter(o => o.category === 'chandelier').length,
+    holderOrders: filtered.filter(o => o.category === 'holder').length,
     totalRevenue: filtered.reduce((s, o) => s + (o.price || 0), 0),
     totalPaid: filtered.reduce((s, o) => s + (o.paidAmount || 0), 0),
     totalRemaining: filtered.reduce((s, o) => s + (o.remainingAmount || 0), 0),
     totalGrams,
     gramsByMachine,
-    gramsByLabel,
+    gramsByCategory: getGramsByCategory(filtered),
+    gramsByColor: getGramsByColor(filtered),
+    gramsByMaterial: getGramsByMaterial(filtered),
     lateOrders: filtered.filter(o => isLate(o)).length,
-    completedOrders: filtered.filter(o => o.status === 'completed').length,
-    deliveredOrders: filtered.filter(o => o.status === 'delivered').length,
-    missingGramsOrders: filtered.filter(o => isMissingGrams(o)).length,
+    completedOrders: filtered.filter(o => o.stage === 'readyDelivery').length,
+    deliveredOrders: filtered.filter(o => o.stage === 'delivered').length,
   };
 }
 
-function calcLabelStats(orders: Order[], label: 'RoboFab' | 'TechNova', monthOrders: Order[]): BusinessLabelStats {
-  const all = orders.filter(o => o.businessLabel === label);
-  const month = monthOrders.filter(o => o.businessLabel === label);
-  const active = (s: Order) => s.status !== 'delivered' && s.status !== 'cancelled';
-
-  const gramsMonth = month
-    .filter(o => o.section === 'printing3d')
-    .reduce((sum, o) => {
-      if (o.splitGrams && o.gramAllocations?.length) {
-        return sum + o.gramAllocations.filter(a => a.businessLabel === label).reduce((s, a) => s + a.grams, 0);
-      }
-      return sum + (o.grams || 0);
-    }, 0);
+function calcCategoryStats(orders: Order[], category: OrderCategory, monthOrders: Order[]): CategoryStats {
+  const all = orders.filter(o => o.category === category);
+  const month = monthOrders.filter(o => o.category === category);
+  const active = (o: Order) => !isTerminalStage(o.stage);
 
   return {
     ordersThisMonth: month.length,
-    gramsThisMonth: gramsMonth,
+    gramsThisMonth: month.reduce((sum, o) => sum + getEffectiveGrams(o), 0),
     revenue: month.reduce((s, o) => s + (o.price || 0), 0),
     paid: month.reduce((s, o) => s + (o.paidAmount || 0), 0),
     remaining: month.reduce((s, o) => s + (o.remainingAmount || 0), 0),
     lateOrders: all.filter(o => isLate(o)).length,
     urgentOrders: all.filter(o => o.priority === 'urgent' && active(o)).length,
-    completedOrders: all.filter(o => o.status === 'completed' || o.status === 'delivered').length,
-    activeOrders: all.filter(o => active(o)).length,
+    activeOrders: all.filter(active).length,
   };
 }
 
@@ -103,29 +109,20 @@ export function calcDashboardStats(orders: Order[]): DashboardStats {
     return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
   });
 
-  const gramsByMachineRaw = getGramsByMachineAndLabel(thisMonthOrders);
-  const gramsByMachine: Record<string, number> = {};
-  let gramsByRoboFab = 0, gramsByTechNova = 0, totalGrams = 0;
-  for (const [machine, vals] of Object.entries(gramsByMachineRaw)) {
-    gramsByMachine[machine] = vals.total;
-    gramsByRoboFab += vals.robofab;
-    gramsByTechNova += vals.techNova;
-    totalGrams += vals.total;
-  }
+  const gramsByMachine = getGramsByMachine(thisMonthOrders);
+  const totalGrams = Object.values(gramsByMachine).reduce((s, v) => s + v, 0);
+  const active = (o: Order) => !isTerminalStage(o.stage);
 
   return {
     totalOrdersThisMonth: thisMonthOrders.length,
     totalGramsThisMonth: totalGrams,
     gramsByMachine,
-    gramsByRoboFab,
-    gramsByTechNova,
     lateOrdersCount: orders.filter(o => isLate(o)).length,
-    ordersDueToday: orders.filter(o => isToday(o.deliveryDate) && o.status !== 'delivered' && o.status !== 'cancelled').length,
-    ordersDueThisWeek: orders.filter(o => isThisWeek(o.deliveryDate) && o.status !== 'delivered' && o.status !== 'cancelled').length,
-    missingGramsCount: orders.filter(o => isMissingGrams(o)).length,
-    urgentOrdersCount: orders.filter(o => o.priority === 'urgent' && o.status !== 'delivered' && o.status !== 'cancelled').length,
+    ordersDueToday: orders.filter(o => isToday(o.deliveryDate) && active(o)).length,
+    ordersDueThisWeek: orders.filter(o => isThisWeek(o.deliveryDate) && active(o)).length,
+    urgentOrdersCount: orders.filter(o => o.priority === 'urgent' && active(o)).length,
     recentOrders: [...orders].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 10),
-    robofab: calcLabelStats(orders, 'RoboFab', thisMonthOrders),
-    techNova: calcLabelStats(orders, 'TechNova', thisMonthOrders),
+    chandelier: calcCategoryStats(orders, 'chandelier', thisMonthOrders),
+    holder: calcCategoryStats(orders, 'holder', thisMonthOrders),
   };
 }

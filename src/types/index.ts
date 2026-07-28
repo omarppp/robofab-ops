@@ -1,18 +1,16 @@
-export type BusinessLabel = 'RoboFab' | 'TechNova';
-export type OrderStatus = 'new' | 'inProgress' | 'waiting' | 'completed' | 'delivered' | 'cancelled';
+export type OrderCategory = 'chandelier' | 'holder';
 export type OrderPriority = 'low' | 'normal' | 'high' | 'urgent';
-export type OrderSection = 'printing3d' | 'design' | 'pcbPrinting' | 'outsourcedPrinting';
 export type MachineStatus = 'active' | 'maintenance' | 'offline';
-export type DesignType = '3dDesign' | 'pcbDesign';
-export type OutsourcedStatus = 'sent' | 'inProgress' | 'received' | 'delivered' | 'cancelled';
 export type UserRole = 'owner' | 'admin' | 'staff' | 'viewer';
-export type ClientCategory = 'printing3d' | '3dDesign' | 'pcbDesign' | 'pcbPrinting' | 'externalPrinting';
-export type WaitingReason =
-  | 'clientConfirmation' | 'material' | 'payment' | 'file'
-  | 'machineAvailability' | 'externalCompany' | 'other';
+export type ClientCategory = 'chandelier' | 'holder';
+export type MaterialType = 'PLA' | 'PETG' | 'TPU' | 'ABS' | 'ASA' | 'Resin' | 'Other';
+export type FilamentStatus = 'available' | 'low' | 'out';
+
 export type ActivityType =
-  | 'created' | 'stageChanged' | 'statusChanged' | 'started' | 'finished'
-  | 'markedReady' | 'delivered' | 'onHold' | 'cancelled' | 'noteAdded' | 'fieldUpdated';
+  | 'created' | 'stageChanged' | 'started' | 'finished'
+  | 'markedReady' | 'delivered' | 'cancelled' | 'noteAdded' | 'fieldUpdated'
+  | 'filamentReserved' | 'filamentConsumed' | 'filamentReleased'
+  | 'machineSelected' | 'deliveryDateChanged' | 'paymentUpdated';
 
 export interface ActivityEntry {
   id: string;
@@ -25,43 +23,21 @@ export interface ActivityEntry {
   note?: string;
 }
 
-// ── Per-section order stages ──────────────────────────────────────────────────
-export type PrintingStage =
-  | 'new' | 'reviewingFile' | 'waitingClientConfirm' | 'waitingMaterial'
-  | 'scheduledPrinting' | 'printing' | 'postProcessing' | 'readyDelivery'
-  | 'delivered' | 'cancelled';
-
-export type DesignStage =
-  | 'new' | 'requirementsReceived' | 'inDesign' | 'waitingClientReview'
-  | 'revision' | 'finalFilesReady' | 'delivered' | 'cancelled';
-
-export type PcbStage =
-  | 'new' | 'fileReview' | 'preparingBoard' | 'printing' | 'finishing'
-  | 'readyDelivery' | 'delivered' | 'cancelled';
-
-export type OutsourcedStage =
-  | 'new' | 'sentExternal' | 'inProgressOutside' | 'receivedCompany'
-  | 'checked' | 'readyDelivery' | 'delivered' | 'cancelled';
-
-export type OrderStage = PrintingStage | DesignStage | PcbStage | OutsourcedStage;
-
-export interface GramAllocation {
-  businessLabel: BusinessLabel;
-  machineId: string;
-  machineName: string;
-  grams: number;
-}
+// ── Unified production stage flow ──────────────────────────────────────────────
+export type OrderStage =
+  | 'new' | 'design' | 'slicing' | 'scheduledPrinting' | 'printing'
+  | 'postProcessing' | 'qualityCheck' | 'readyDelivery' | 'delivered' | 'cancelled';
 
 export interface Order {
   id: string;
-  section: OrderSection;
+  category: OrderCategory;
   orderName: string;
   clientName: string;
   clientPhone: string;
-  businessLabel: BusinessLabel;
+  productType?: string;
   receivedDate: string;
   deliveryDate: string;
-  status: OrderStatus;
+  stage: OrderStage;
   priority: OrderPriority;
   price: number;
   paidAmount: number;
@@ -72,47 +48,41 @@ export interface Order {
   updatedAt: string;
   createdBy?: string;
 
-  // Stage tracking (section-specific, replaces coarse status for ops board)
-  stage?: OrderStage;
-  waitingReason?: WaitingReason;
-  internalDeadlineNotes?: string;
+  // Timeline / stage timestamps
+  designStartedAt?: string;
+  designCompletedAt?: string;
+  slicingStartedAt?: string;
+  slicingCompletedAt?: string;
+  printingStartedAt?: string;
+  printingFinishedAt?: string;
+  postProcessingDoneAt?: string;
+  qualityCheckDoneAt?: string;
+  readyForDeliveryAt?: string;
+  deliveredDate?: string;
+  cancelledAt?: string;
 
-  // Timeline scheduling
+  // Print scheduling
   plannedStartDate?: string;
   printStartTime?: string;
   printEndDate?: string;
   printEndTime?: string;
   printDurationHours?: number;
-  actualStartTime?: string;
-  actualFinishTime?: string;
-  deliveredDate?: string;
 
-  // 3D Printing specific
+  // Production
   machineId?: string;
   machineName?: string;
-  material?: string;
-  color?: string;
   quantity?: number;
-  grams?: number;
-  gramAllocations?: GramAllocation[];
-  splitGrams?: boolean;
 
-  // Design specific
-  designType?: DesignType;
-
-  // PCB specific
-  boardType?: string;
-  boardSize?: string;
-  layers?: number;
-
-  // Outsourced specific
-  companyName?: string;
-  contactPerson?: string;
-  dateSent?: string;
-  expectedDeliveryDate?: string;
-  actualDeliveryDate?: string;
-  cost?: number;
-  sellingPrice?: number;
+  // Filament usage
+  filamentId?: string;
+  filamentName?: string;
+  filamentColorName?: string;
+  materialType?: MaterialType;
+  estimatedGrams?: number;
+  actualGrams?: number;
+  reservedGrams?: number;
+  stockConsumed?: boolean;
+  stockOverride?: boolean;
 }
 
 export interface Machine {
@@ -146,23 +116,49 @@ export interface AppUser {
   createdAt: string;
 }
 
+// ── Filament stock / inventory ─────────────────────────────────────────────────
+export interface FilamentStock {
+  id: string;
+  filamentName: string;
+  materialType: MaterialType;
+  colorName: string;
+  colorHex?: string;
+  colorImageUrl?: string;
+  brand?: string;
+  supplier?: string;
+  spoolWeight?: number;
+  currentGrams: number;
+  usedGrams: number;
+  reservedGrams: number;
+  minStockLevel: number;
+  costPerKg?: number;
+  purchaseDate?: string;
+  storageLocation?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface MonthlyReport {
   month: number;
   year: number;
   totalOrders: number;
+  chandelierOrders: number;
+  holderOrders: number;
   totalRevenue: number;
   totalPaid: number;
   totalRemaining: number;
   totalGrams: number;
-  gramsByMachine: Record<string, { robofab: number; techNova: number; total: number }>;
-  gramsByLabel: { robofab: number; techNova: number };
+  gramsByMachine: Record<string, number>;
+  gramsByCategory: { chandelier: number; holder: number };
+  gramsByColor: Record<string, number>;
+  gramsByMaterial: Record<string, number>;
   lateOrders: number;
   completedOrders: number;
   deliveredOrders: number;
-  missingGramsOrders: number;
 }
 
-export interface BusinessLabelStats {
+export interface CategoryStats {
   ordersThisMonth: number;
   gramsThisMonth: number;
   revenue: number;
@@ -170,7 +166,6 @@ export interface BusinessLabelStats {
   remaining: number;
   lateOrders: number;
   urgentOrders: number;
-  completedOrders: number;
   activeOrders: number;
 }
 
@@ -178,14 +173,11 @@ export interface DashboardStats {
   totalOrdersThisMonth: number;
   totalGramsThisMonth: number;
   gramsByMachine: Record<string, number>;
-  gramsByRoboFab: number;
-  gramsByTechNova: number;
   lateOrdersCount: number;
   ordersDueToday: number;
   ordersDueThisWeek: number;
-  missingGramsCount: number;
   urgentOrdersCount: number;
   recentOrders: Order[];
-  robofab: BusinessLabelStats;
-  techNova: BusinessLabelStats;
+  chandelier: CategoryStats;
+  holder: CategoryStats;
 }

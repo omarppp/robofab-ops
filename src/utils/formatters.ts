@@ -1,21 +1,4 @@
-import type { OrderStatus, OrderPriority, BusinessLabel, MachineStatus, OutsourcedStatus, DesignType, ClientCategory } from '@/types';
-
-export const STATUS_LABELS: Record<OrderStatus, string> = {
-  new: 'جديد',
-  inProgress: 'قيد التنفيذ',
-  waiting: 'في الانتظار',
-  completed: 'مكتمل',
-  delivered: 'تم التسليم',
-  cancelled: 'ملغي',
-};
-
-export const OUTSOURCED_STATUS_LABELS: Record<OutsourcedStatus, string> = {
-  sent: 'تم الإرسال',
-  inProgress: 'قيد التنفيذ',
-  received: 'تم الاستلام',
-  delivered: 'تم التسليم',
-  cancelled: 'ملغي',
-};
+import type { OrderPriority, MachineStatus, ClientCategory, OrderCategory, MaterialType, FilamentStatus } from '@/types';
 
 export const PRIORITY_LABELS: Record<OrderPriority, string> = {
   low: 'منخفض',
@@ -24,36 +7,43 @@ export const PRIORITY_LABELS: Record<OrderPriority, string> = {
   urgent: 'عاجل',
 };
 
-export const BUSINESS_LABELS: Record<BusinessLabel, string> = {
-  RoboFab: 'RoboFab',
-  TechNova: 'Tech Nova',
-};
-
 export const MACHINE_STATUS_LABELS: Record<MachineStatus, string> = {
   active: 'نشط',
   maintenance: 'صيانة',
   offline: 'غير متاح',
 };
 
-export const DESIGN_TYPE_LABELS: Record<DesignType, string> = {
-  '3dDesign': 'تصميم ثلاثي الأبعاد',
-  pcbDesign: 'تصميم PCB',
+export const CATEGORY_LABELS: Record<OrderCategory, string> = {
+  chandelier: 'أوردرات النجف',
+  holder: 'أوردرات الهولدرات',
 };
 
 export const CLIENT_CATEGORY_LABELS: Record<ClientCategory, string> = {
-  printing3d: 'طباعة ثلاثية الأبعاد',
-  '3dDesign': 'تصميم ثلاثي الأبعاد',
-  pcbDesign: 'تصميم PCB',
-  pcbPrinting: 'طباعة PCB',
-  externalPrinting: 'طباعة خارجية',
+  chandelier: 'النجف',
+  holder: 'الهولدرات',
 };
 
-export const SECTION_LABELS: Record<string, string> = {
-  printing3d: 'الطباعة ثلاثية الأبعاد',
-  design: 'التصميم',
-  pcbPrinting: 'طباعة PCB',
-  outsourcedPrinting: 'الطباعة عند الغير',
+export const MATERIAL_TYPE_LABELS: Record<MaterialType, string> = {
+  PLA: 'PLA',
+  PETG: 'PETG',
+  TPU: 'TPU',
+  ABS: 'ABS',
+  ASA: 'ASA',
+  Resin: 'Resin',
+  Other: 'أخرى',
 };
+
+export const FILAMENT_STATUS_LABELS: Record<FilamentStatus, string> = {
+  available: 'متوفر',
+  low: 'منخفض',
+  out: 'نفذ',
+};
+
+export function filamentStatus(currentGrams: number, minStockLevel: number): FilamentStatus {
+  if (currentGrams <= 0) return 'out';
+  if (currentGrams <= minStockLevel) return 'low';
+  return 'available';
+}
 
 export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('ar-SA', { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(amount);

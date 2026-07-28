@@ -5,7 +5,7 @@ import Button from '@/components/ui/Button';
 import type { Client, ClientCategory } from '@/types';
 import { CLIENT_CATEGORY_LABELS } from '@/utils/formatters';
 
-const ALL_CATEGORIES: ClientCategory[] = ['printing3d', '3dDesign', 'pcbDesign', 'pcbPrinting', 'externalPrinting'];
+const ALL_CATEGORIES: ClientCategory[] = ['chandelier', 'holder'];
 
 interface Props { initial?: Partial<Client>; onSubmit: (data: Partial<Client>) => Promise<void>; loading?: boolean; }
 

@@ -1,6 +1,6 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { Plus, Cpu, Pencil, Trash2, RefreshCw, Zap, CheckCircle2, AlertCircle } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { Plus, Cpu, Pencil, Trash2, RefreshCw, Zap, CheckCircle2, AlertCircle, ArrowUpCircle } from 'lucide-react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import Button from '@/components/ui/Button';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
@@ -10,8 +10,7 @@ import { MachineStatusBadge } from '@/components/ui/Badge';
 import MachineForm from '@/components/forms/MachineForm';
 import { useMachines } from '@/hooks/useMachines';
 import { createMachine, updateMachine, deleteMachine } from '@/lib/firestore';
-import { seedMachinesIfEmpty, forceReseedMachines, ROBOFAB_MACHINES } from '@/lib/seedMachines';
-import { formatDate } from '@/utils/dateUtils';
+import { seedMachinesIfEmpty, migrateToNewFleet, hasRetiredMachines, ROBOFAB_MACHINES } from '@/lib/seedMachines';
 import type { Machine } from '@/types';
 
 type SeedState = 'idle' | 'seeding' | 'done' | 'error';
@@ -21,7 +20,7 @@ export default function MachinesPage() {
   const [showForm, setShowForm] = useState(false);
   const [editMachine, setEditMachine] = useState<Machine | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [confirmReseed, setConfirmReseed] = useState(false);
+  const [confirmMigrate, setConfirmMigrate] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [seedState, setSeedState] = useState<SeedState>('idle');
@@ -38,17 +37,19 @@ export default function MachinesPage() {
       .catch(() => { setSeedState('error'); setSeedMessage('فشل التهيئة التلقائية.'); });
   }, [loading, machines.length]);
 
-  const handleForceReseed = async () => {
-    setSeedState('seeding'); setConfirmReseed(false);
+  const needsMigration = useMemo(() => hasRetiredMachines(machines), [machines]);
+
+  const handleMigrate = async () => {
+    setSeedState('seeding'); setConfirmMigrate(false);
     try {
-      const { count } = await forceReseedMachines();
-      setSeedMessage(`تم إعادة تهيئة ${count} ماكينة`); setSeedState('done');
-    } catch { setSeedState('error'); setSeedMessage('فشلت إعادة التهيئة'); }
+      const { removed, added } = await migrateToNewFleet();
+      setSeedMessage(`تم حذف ${removed} ماكينة قديمة وإضافة ${added} ماكينة جديدة`); setSeedState('done');
+    } catch { setSeedState('error'); setSeedMessage('فشل تحديث قائمة الماكينات'); }
   };
 
   const handleCreate = async (data: Partial<Machine>) => {
     setSaving(true);
-    try { await createMachine(data as any); setShowForm(false); }
+    try { await createMachine(data as Omit<Machine, 'id' | 'createdAt' | 'updatedAt'>); setShowForm(false); }
     catch (err) { console.error(err); } finally { setSaving(false); }
   };
 
@@ -72,20 +73,27 @@ export default function MachinesPage() {
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <span className="text-slate-500 text-sm">{machines.length} ماكينة مسجلة</span>
           <div className="flex gap-2">
-            <Button variant="outline" icon={<RefreshCw className={`w-4 h-4 ${isSeedingNow ? 'animate-spin' : ''}`} />} onClick={() => setConfirmReseed(true)} disabled={isSeedingNow}>
-              إعادة تهيئة القائمة
-            </Button>
             <Button icon={<Plus className="w-4 h-4" />} onClick={() => setShowForm(true)}>إضافة ماكينة</Button>
           </div>
         </div>
 
+        {needsMigration && (
+          <div className="flex items-center gap-3 bg-violet-500/10 border border-violet-500/20 rounded-xl px-5 py-3 flex-wrap">
+            <ArrowUpCircle className="w-4 h-4 text-violet-400 flex-shrink-0" />
+            <div className="flex-1 min-w-40">
+              <p className="text-violet-300 font-medium text-sm">تم رصد ماكينات من الأسطول القديم</p>
+              <p className="text-violet-500 text-xs">سيتم حذف الأسماء القديمة فقط وإضافة أي ماكينة جديدة ناقصة — بدون تكرار.</p>
+            </div>
+            <Button size="sm" variant="outline" icon={<RefreshCw className={`w-3.5 h-3.5 ${isSeedingNow ? 'animate-spin' : ''}`} />} onClick={() => setConfirmMigrate(true)} disabled={isSeedingNow}>
+              تحديث لقائمة الماكينات الجديدة
+            </Button>
+          </div>
+        )}
+
         {seedState === 'seeding' && (
           <div className="flex items-center gap-3 bg-blue-500/10 border border-blue-500/20 rounded-xl px-5 py-3">
             <RefreshCw className="w-4 h-4 text-blue-400 animate-spin flex-shrink-0" />
-            <div>
-              <p className="text-blue-300 font-medium text-sm">جاري تهيئة ماكينات RoboFab...</p>
-              <p className="text-blue-500 text-xs">يتم إضافة {ROBOFAB_MACHINES.length} ماكينة إلى Firestore</p>
-            </div>
+            <p className="text-blue-300 font-medium text-sm">جاري التحديث...</p>
           </div>
         )}
         {seedState === 'done' && (
@@ -103,7 +111,7 @@ export default function MachinesPage() {
         )}
 
         {loading || isSeedingNow ? (
-          <LoadingSpinner text={isSeedingNow ? 'جاري التهيئة...' : 'جاري التحميل...'} />
+          <LoadingSpinner text={isSeedingNow ? 'جاري التحديث...' : 'جاري التحميل...'} />
         ) : machines.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 gap-5">
             <div className="w-20 h-20 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center">
@@ -155,11 +163,11 @@ export default function MachinesPage() {
           </div>
         )}
 
-        {machines.length > 0 && (
+        {machines.length > 0 && !needsMigration && (
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
             <h3 className="text-slate-400 text-sm font-medium mb-3 flex items-center gap-2">
               <Zap className="w-3.5 h-3.5 text-cyan-500" />
-              أسطول RoboFab الافتراضي ({ROBOFAB_MACHINES.length} ماكينة)
+              أسطول RoboFab الحالي ({ROBOFAB_MACHINES.length} ماكينة)
             </h3>
             <div className="flex flex-wrap gap-2">
               {ROBOFAB_MACHINES.map(m => {
@@ -171,7 +179,6 @@ export default function MachinesPage() {
                 );
               })}
             </div>
-            <p className="text-slate-600 text-xs mt-3">الماكينات الخضراء موجودة في قاعدة البيانات. الرمادية غير موجودة.</p>
           </div>
         )}
       </div>
@@ -183,7 +190,13 @@ export default function MachinesPage() {
         {editMachine && <MachineForm initial={editMachine} onSubmit={handleUpdate} loading={saving} />}
       </Modal>
       <ConfirmDialog open={!!deleteId} onClose={() => setDeleteId(null)} onConfirm={handleDelete} loading={deleting} message="هل تريد حذف هذه الماكينة؟ لن تُحذف الطلبات المرتبطة بها." />
-      <ConfirmDialog open={confirmReseed} onClose={() => setConfirmReseed(false)} onConfirm={handleForceReseed} title="إعادة تهيئة الماكينات" message={`سيتم حذف جميع الماكينات الحالية (${machines.length}) وإعادة إضافة القائمة الافتراضية (${ROBOFAB_MACHINES.length} ماكينة).`} />
+      <ConfirmDialog
+        open={confirmMigrate}
+        onClose={() => setConfirmMigrate(false)}
+        onConfirm={handleMigrate}
+        title="تحديث قائمة الماكينات"
+        message="سيتم حذف الماكينات القديمة المطابقة فقط وإضافة أي ماكينة جديدة ناقصة. الماكينات المخصصة الأخرى لن تتأثر."
+      />
     </DashboardLayout>
   );
 }
