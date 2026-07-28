@@ -8,6 +8,7 @@ import { useAllOrders } from '@/hooks/useOrders';
 import { useTranslation } from '@/hooks/useTranslation';
 import { isTerminalStage } from '@/utils/stages';
 import { formatDate } from '@/utils/dateUtils';
+import { orderHref } from '@/utils/orderLinks';
 import type { Order } from '@/types';
 
 function jobTimeRange(o: Order): string {
@@ -15,10 +16,6 @@ function jobTimeRange(o: Order): string {
   const start = `${formatDate(o.plannedStartDate)} ${o.printStartTime || ''}`;
   const end = o.printEndDate ? `— ${formatDate(o.printEndDate)} ${o.printEndTime || ''}` : '';
   return `${start} ${end}`.trim();
-}
-
-function orderHref(o: Order): string {
-  return `/orders/${o.category}/${o.id}`;
 }
 
 export default function MachineSchedulePage() {

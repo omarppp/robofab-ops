@@ -18,10 +18,9 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { isLate, isToday, isDueTomorrow, isDueThisWeek, daysOverdue, daysUntil, formatFullDate, formatDateTime } from '@/utils/dateUtils';
 import { isReadyStage, isTerminalStage, stageColor } from '@/utils/stages';
 import { filamentStatus } from '@/utils/formatters';
+import { orderHref } from '@/utils/orderLinks';
 import type { Order } from '@/types';
 import type { TranslationKey } from '@/i18n/translations';
-
-const orderHref = (o: Order) => `/orders/${o.category}/${o.id}`;
 
 const ACTIVITY_ICONS: Record<string, string> = {
   created: '✦', stageChanged: '→', started: '▶', finished: '■',

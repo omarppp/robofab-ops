@@ -6,7 +6,8 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { useAllOrders } from '@/hooks/useOrders';
 import { useTranslation } from '@/hooks/useTranslation';
-import type { Order, OrderCategory } from '@/types';
+import { orderHref, getOrderCategoryPath } from '@/utils/orderLinks';
+import type { OrderCategory } from '@/types';
 
 const CATEGORY_CONFIG: Record<OrderCategory, { color: string; icon: typeof Lightbulb }> = {
   chandelier: { color: 'bg-amber-500/10 border-amber-500/20 text-amber-400', icon: Lightbulb },
@@ -27,10 +28,6 @@ function isSameDay(date: Date, dateStr?: string): boolean {
   if (!dateStr) return false;
   const d = new Date(dateStr);
   return d.getFullYear() === date.getFullYear() && d.getMonth() === date.getMonth() && d.getDate() === date.getDate();
-}
-
-function orderHref(o: Order): string {
-  return `/orders/${o.category}/${o.id}`;
 }
 
 export default function CalendarPage() {
@@ -111,7 +108,7 @@ export default function CalendarPage() {
 
                   <div className="flex-1 p-1.5 space-y-1 overflow-y-auto">
                     {deliveries.map(o => {
-                      const cfg = CATEGORY_CONFIG[o.category];
+                      const cfg = CATEGORY_CONFIG[getOrderCategoryPath(o)];
                       const Icon = cfg.icon;
                       return (
                         <Link key={`d-${o.id}`} href={orderHref(o)}>

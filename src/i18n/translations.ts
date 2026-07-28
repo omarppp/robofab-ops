@@ -78,8 +78,9 @@ export const translations = {
     'mstatus.offline':     'غير متاح',
 
     // ── Order categories ──────────────────────────────────────────────────────
-    'cat.chandelier': 'أوردرات النجف',
-    'cat.holder':     'أوردرات الهولدرات',
+    'cat.chandelier':   'أوردرات النجف',
+    'cat.holder':       'أوردرات الهولدرات',
+    'cat.unspecified':  'نوع الأوردر غير محدد',
 
     // ── Client categories ─────────────────────────────────────────────────────
     'ccat.chandelier': 'النجف',
@@ -557,8 +558,9 @@ export const translations = {
     'mstatus.offline':     'Offline',
 
     // ── Order categories ──────────────────────────────────────────────────────
-    'cat.chandelier': 'Chandelier Orders',
-    'cat.holder':     'Holder Orders',
+    'cat.chandelier':   'Chandelier Orders',
+    'cat.holder':       'Holder Orders',
+    'cat.unspecified':  'Order category not specified',
 
     // ── Client categories ─────────────────────────────────────────────────────
     'ccat.chandelier': 'Chandelier',

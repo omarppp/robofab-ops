@@ -12,16 +12,13 @@ import { useOrders } from '@/hooks/useOrders';
 import { useTranslation } from '@/hooks/useTranslation';
 import { isLate, formatDate } from '@/utils/dateUtils';
 import { ORDER_STAGES } from '@/utils/stages';
+import { orderHref, orderEditHref } from '@/utils/orderLinks';
 import type { OrderPriority, OrderCategory, OrderStage } from '@/types';
 import type { TranslationKey } from '@/i18n/translations';
 
 type ViewMode = 'list' | 'board';
 
 const selectCls = 'bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all';
-
-function orderHref(o: { id: string; category: OrderCategory }) {
-  return `/orders/${o.category}/${o.id}`;
-}
 
 interface Props {
   category?: OrderCategory;
@@ -162,7 +159,7 @@ export default function OrderListPage({ category, title, newHref, showCategoryFi
                             <Link href={href}>
                               <Button variant="ghost" size="sm">{t('common.view')}</Button>
                             </Link>
-                            <Link href={`${href}/edit`}>
+                            <Link href={orderEditHref(order)}>
                               <Button variant="outline" size="sm">{t('common.edit')}</Button>
                             </Link>
                           </div>
