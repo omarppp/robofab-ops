@@ -160,7 +160,7 @@ export default function OrderDetailPage({ id, backHref }: Props) {
               <div className="grid grid-cols-3 gap-4">
                 <div className="text-center bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
                   <div className="text-slate-500 text-xs mb-1">{t('fin.price')}</div>
-                  <div className="text-slate-100 font-bold text-lg">{formatCurrency(order.price)} {t('common.sar')}</div>
+                  <div className="text-slate-100 font-bold text-lg">{order.price != null ? `${formatCurrency(order.price)} ${t('common.sar')}` : '—'}</div>
                 </div>
                 <div className="text-center bg-green-500/10 border border-green-500/20 rounded-xl p-4">
                   <div className="text-slate-500 text-xs mb-1">{t('fin.paid')}</div>
@@ -168,10 +168,50 @@ export default function OrderDetailPage({ id, backHref }: Props) {
                 </div>
                 <div className="text-center bg-amber-500/10 border border-amber-500/20 rounded-xl p-4">
                   <div className="text-slate-500 text-xs mb-1">{t('fin.remaining')}</div>
-                  <div className="text-amber-400 font-bold text-lg">{formatCurrency(order.remainingAmount)} {t('common.sar')}</div>
+                  <div className="text-amber-400 font-bold text-lg">{order.remainingAmount != null ? `${formatCurrency(order.remainingAmount)} ${t('common.sar')}` : '—'}</div>
                 </div>
               </div>
+              {(order.paymentMethod || order.paymentStatus || order.paymentNotes) && (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-5 mt-5 pt-5 border-t border-slate-800">
+                  {order.paymentMethod && <Detail label={t('form.paymentMethod')} value={t(`pmethod.${order.paymentMethod}` as TranslationKey)} />}
+                  {order.paymentStatus && <Detail label={t('form.paymentStatus')} value={t(`pstatus.${order.paymentStatus}` as TranslationKey)} />}
+                  {order.paymentNotes && <Detail label={t('form.paymentNotes')} value={order.paymentNotes} />}
+                </div>
+              )}
             </div>
+
+            {/* Files & model links */}
+            {(order.makerWorldLink || order.driveLink || order.otherLink) && (
+              <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                <h3 className="text-slate-200 font-semibold mb-4">{t('form.sectionLinks')}</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  {order.makerWorldLink && (
+                    <div className="flex flex-col gap-1 min-w-0">
+                      <span className="text-xs text-slate-600 uppercase tracking-wider">{t('form.makerWorldLink')}</span>
+                      <a href={order.makerWorldLink} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 text-sm truncate transition-colors">
+                        {order.makerWorldLink}
+                      </a>
+                    </div>
+                  )}
+                  {order.driveLink && (
+                    <div className="flex flex-col gap-1 min-w-0">
+                      <span className="text-xs text-slate-600 uppercase tracking-wider">{t('form.driveLink')}</span>
+                      <a href={order.driveLink} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 text-sm truncate transition-colors">
+                        {order.driveLink}
+                      </a>
+                    </div>
+                  )}
+                  {order.otherLink && (
+                    <div className="flex flex-col gap-1 min-w-0">
+                      <span className="text-xs text-slate-600 uppercase tracking-wider">{t('form.otherLink')}</span>
+                      <a href={order.otherLink} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 text-sm truncate transition-colors">
+                        {order.otherLink}
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {order.notes && (
               <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">

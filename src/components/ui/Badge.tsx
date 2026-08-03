@@ -33,13 +33,14 @@ export function CategoryBadge({ category }: { category: OrderCategory }) {
   const styles: Record<OrderCategory, string> = {
     chandelier: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
     holder:     'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20',
+    general:    'bg-violet-500/10 text-violet-400 border border-violet-500/20',
   };
   const keyMap: Record<OrderCategory, TranslationKey> = {
-    chandelier: 'cat.chandelier', holder: 'cat.holder',
+    chandelier: 'cat.chandelier', holder: 'cat.holder', general: 'cat.general',
   };
   // Defensive: legacy/corrupted data may have a missing or invalid category —
   // never crash on an unmapped value, show a clear "not specified" badge instead.
-  if (category !== 'chandelier' && category !== 'holder') {
+  if (category !== 'chandelier' && category !== 'holder' && category !== 'general') {
     return <Badge label={t('cat.unspecified')} className="bg-slate-700/50 text-slate-400 border border-slate-700" />;
   }
   return <Badge label={t(keyMap[category])} className={styles[category]} />;

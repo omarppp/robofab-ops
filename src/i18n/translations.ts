@@ -9,6 +9,7 @@ export const translations = {
     'nav.dashboard':     'لوحة العمليات',
     'nav.chandelier':    'أوردرات النجف',
     'nav.holder':        'أوردرات الهولدرات',
+    'nav.general':       'أوردرات عادية',
     'nav.allOrders':     'كل الطلبات',
     'nav.filamentStock': 'استوك الفيلمنت',
     'nav.clients':       'العملاء',
@@ -80,6 +81,7 @@ export const translations = {
     // ── Order categories ──────────────────────────────────────────────────────
     'cat.chandelier':   'أوردرات النجف',
     'cat.holder':       'أوردرات الهولدرات',
+    'cat.general':      'أوردرات عادية',
     'cat.unspecified':  'نوع الأوردر غير محدد',
 
     // ── Client categories ─────────────────────────────────────────────────────
@@ -96,6 +98,22 @@ export const translations = {
     'material.ASA':   'ASA',
     'material.Resin': 'Resin',
     'material.Other': 'أخرى',
+
+    // ── Payment methods ───────────────────────────────────────────────────────
+    'pmethod.cash':         'كاش',
+    'pmethod.vodafoneCash': 'فودافون كاش',
+    'pmethod.instapay':     'إنستاباي',
+    'pmethod.bankTransfer': 'تحويل بنكي',
+    'pmethod.notPaid':      'لم يتم الدفع',
+    'pmethod.other':        'أخرى',
+
+    // ── Payment statuses ──────────────────────────────────────────────────────
+    'pstatus.notSet':           'غير محدد',
+    'pstatus.notPaid':          'لم يتم الدفع',
+    'pstatus.depositPaid':      'عربون مدفوع',
+    'pstatus.partiallyPaid':    'مدفوع جزئيًا',
+    'pstatus.fullyPaid':        'مدفوع بالكامل',
+    'pstatus.remainingBalance': 'عليه متبقي',
 
     // ── Alerts / badges ───────────────────────────────────────────────────────
     'alert.late':             'متأخر',
@@ -147,8 +165,16 @@ export const translations = {
     'form.stage':            'المرحلة',
     'form.priority':         'الأولوية',
     'form.price':            'السعر',
+    'form.pricePlaceholder':      'اكتب السعر',
     'form.paidAmount':       'المبلغ المدفوع',
+    'form.paidAmountPlaceholder': 'اكتب المدفوع',
     'form.remainingAmount':  'المبلغ المتبقي',
+    'form.paymentMethod':    'طريقة الدفع',
+    'form.paymentStatus':    'حالة الدفع',
+    'form.paymentNotes':     'ملاحظات الدفع',
+    'form.makerWorldLink':   'لينك MakerWorld',
+    'form.driveLink':        'لينك Google Drive',
+    'form.otherLink':        'لينك آخر',
     'form.notes':            'ملاحظات',
     'form.attachments':      'المرفقات',
     'form.sectionClient':    'بيانات العميل',
@@ -156,6 +182,7 @@ export const translations = {
     'form.sectionProduction':'بيانات الإنتاج',
     'form.sectionFilament':  'استخدام الفيلمنت',
     'form.sectionPayment':   'بيانات الدفع',
+    'form.sectionLinks':     'روابط الملفات والموديلات',
     'form.sectionNotes':     'ملاحظات ومرفقات',
 
     // ── Orders ────────────────────────────────────────────────────────────────
@@ -504,6 +531,7 @@ export const translations = {
     'nav.dashboard':     'Operations Board',
     'nav.chandelier':    'Chandelier Orders',
     'nav.holder':        'Holder Orders',
+    'nav.general':       'General Orders',
     'nav.allOrders':     'All Orders',
     'nav.filamentStock': 'Filament Stock',
     'nav.clients':       'Clients',
@@ -575,6 +603,7 @@ export const translations = {
     // ── Order categories ──────────────────────────────────────────────────────
     'cat.chandelier':   'Chandelier Orders',
     'cat.holder':       'Holder Orders',
+    'cat.general':      'General Orders',
     'cat.unspecified':  'Order category not specified',
 
     // ── Client categories ─────────────────────────────────────────────────────
@@ -591,6 +620,22 @@ export const translations = {
     'material.ASA':   'ASA',
     'material.Resin': 'Resin',
     'material.Other': 'Other',
+
+    // ── Payment methods ───────────────────────────────────────────────────────
+    'pmethod.cash':         'Cash',
+    'pmethod.vodafoneCash': 'Vodafone Cash',
+    'pmethod.instapay':     'Instapay',
+    'pmethod.bankTransfer': 'Bank Transfer',
+    'pmethod.notPaid':      'Not Paid',
+    'pmethod.other':        'Other',
+
+    // ── Payment statuses ──────────────────────────────────────────────────────
+    'pstatus.notSet':           'Not Set',
+    'pstatus.notPaid':          'Not Paid',
+    'pstatus.depositPaid':      'Deposit Paid',
+    'pstatus.partiallyPaid':    'Partially Paid',
+    'pstatus.fullyPaid':        'Fully Paid',
+    'pstatus.remainingBalance': 'Remaining Balance',
 
     // ── Alerts / badges ───────────────────────────────────────────────────────
     'alert.late':              'Late',
@@ -642,8 +687,16 @@ export const translations = {
     'form.stage':            'Stage',
     'form.priority':         'Priority',
     'form.price':            'Price',
+    'form.pricePlaceholder':      'Enter price',
     'form.paidAmount':       'Paid Amount',
+    'form.paidAmountPlaceholder': 'Enter paid amount',
     'form.remainingAmount':  'Remaining Amount',
+    'form.paymentMethod':    'Payment Method',
+    'form.paymentStatus':    'Payment Status',
+    'form.paymentNotes':     'Payment Notes',
+    'form.makerWorldLink':   'MakerWorld Link',
+    'form.driveLink':        'Google Drive Link',
+    'form.otherLink':        'Other Link',
     'form.notes':            'Notes',
     'form.attachments':      'Attachments',
     'form.sectionClient':    'Client Info',
@@ -651,6 +704,7 @@ export const translations = {
     'form.sectionProduction':'Production Info',
     'form.sectionFilament':  'Filament Usage',
     'form.sectionPayment':   'Payment Info',
+    'form.sectionLinks':     'Files & Model Links',
     'form.sectionNotes':     'Notes & Attachments',
 
     // ── Orders ────────────────────────────────────────────────────────────────

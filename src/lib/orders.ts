@@ -27,7 +27,7 @@ export async function createOrderWithStock(
     const now = new Date().toISOString();
     const payload: Record<string, unknown> = {
       ...data,
-      remainingAmount: (data.price || 0) - (data.paidAmount || 0),
+      remainingAmount: data.price == null ? null : data.price - (data.paidAmount || 0),
       createdAt: now,
       updatedAt: now,
     };
@@ -125,7 +125,11 @@ export async function updateOrderWithStock(
     const raw: Record<string, unknown> = { ...data, updatedAt: now };
     if (canAdjust) raw.reservedGrams = newReserved;
     if (data.price !== undefined || data.paidAmount !== undefined) {
-      raw.remainingAmount = (data.price ?? previous.price ?? 0) - (data.paidAmount ?? previous.paidAmount ?? 0);
+      // `data.price === null` means the user explicitly cleared the field —
+      // that must win over `previous.price`, so undefined/null can't be conflated via `??`.
+      const newPrice = data.price !== undefined ? data.price : previous.price;
+      const newPaid = data.paidAmount !== undefined ? data.paidAmount : previous.paidAmount;
+      raw.remainingAmount = newPrice == null ? null : newPrice - (newPaid || 0);
     }
     tx.update(orderRef, sanitizeForFirestore(raw) as Record<string, unknown>);
   });

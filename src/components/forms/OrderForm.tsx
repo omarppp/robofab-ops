@@ -16,7 +16,7 @@ import { getOrders, createClient } from '@/lib/firestore';
 import { storage } from '@/lib/firebase';
 import { toInputDate } from '@/utils/dateUtils';
 import { MATERIAL_TYPE_LABELS } from '@/utils/formatters';
-import type { Order, OrderCategory, FilamentStock, Client } from '@/types';
+import type { Order, OrderCategory, FilamentStock, Client, PaymentMethod, PaymentStatus } from '@/types';
 
 interface Props {
   category: OrderCategory;
@@ -27,6 +27,13 @@ interface Props {
 
 function SectionHeading({ children }: { children: React.ReactNode }) {
   return <h3 className="text-slate-300 font-semibold mb-4 text-sm">{children}</h3>;
+}
+
+function autoPaymentStatus(price: number, paid: number): PaymentStatus {
+  if (!price) return 'notSet';
+  if (!paid) return 'notPaid';
+  if (paid < price) return 'partiallyPaid';
+  return 'fullyPaid';
 }
 
 export default function OrderForm({ category, initial, onSubmit, loading }: Props) {
@@ -51,8 +58,14 @@ export default function OrderForm({ category, initial, onSubmit, loading }: Prop
     quantity: initial?.quantity || 1,
     estimatedGrams: initial?.estimatedGrams || 0,
     actualGrams: initial?.actualGrams,
-    price: initial?.price || 0,
-    paidAmount: initial?.paidAmount || 0,
+    price: initial?.price ?? '',
+    paidAmount: initial?.paidAmount ?? '',
+    paymentMethod: initial?.paymentMethod || '',
+    paymentStatus: initial?.paymentStatus || 'notSet',
+    paymentNotes: initial?.paymentNotes || '',
+    makerWorldLink: initial?.makerWorldLink || '',
+    driveLink: initial?.driveLink || '',
+    otherLink: initial?.otherLink || '',
     notes: initial?.notes || '',
     attachments: initial?.attachments || [] as string[],
   });
@@ -68,6 +81,7 @@ export default function OrderForm({ category, initial, onSubmit, loading }: Prop
     printDurationHours: initial?.printDurationHours || 0,
   });
   const [conflictOrder, setConflictOrder] = useState<Order | null>(null);
+  const [paymentStatusTouched, setPaymentStatusTouched] = useState(!!initial?.paymentStatus);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [uploading, setUploading] = useState(false);
 
@@ -164,9 +178,15 @@ export default function OrderForm({ category, initial, onSubmit, loading }: Prop
       clientEmail: form.clientEmail || undefined,
       clientAddress: form.clientAddress || undefined,
       stage: initial?.stage || 'new',
-      price: Number(form.price),
-      paidAmount: Number(form.paidAmount),
-      remainingAmount: Number(form.price) - Number(form.paidAmount),
+      price: form.price === '' ? null : Number(form.price),
+      paidAmount: form.paidAmount === '' ? 0 : Number(form.paidAmount),
+      remainingAmount: form.price === '' ? null : Number(form.price) - (form.paidAmount === '' ? 0 : Number(form.paidAmount)),
+      paymentMethod: (form.paymentMethod || undefined) as Order['paymentMethod'],
+      paymentStatus: form.paymentStatus as Order['paymentStatus'],
+      paymentNotes: form.paymentNotes || undefined,
+      makerWorldLink: form.makerWorldLink || undefined,
+      driveLink: form.driveLink || undefined,
+      otherLink: form.otherLink || undefined,
       quantity: Number(form.quantity),
       estimatedGrams: Number(form.estimatedGrams) || undefined,
       actualGrams: form.actualGrams != null ? Number(form.actualGrams) : undefined,
@@ -184,6 +204,14 @@ export default function OrderForm({ category, initial, onSubmit, loading }: Prop
   };
 
   const endCalc = calcEnd();
+
+  useEffect(() => {
+    if (paymentStatusTouched) return;
+    const priceNum = form.price === '' ? 0 : Number(form.price);
+    const paidNum = form.paidAmount === '' ? 0 : Number(form.paidAmount);
+    set('paymentStatus', autoPaymentStatus(priceNum, paidNum));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.price, form.paidAmount, paymentStatusTouched]);
 
   useEffect(() => {
     if (initial?.filamentId && !selectedFilament) {
@@ -341,15 +369,63 @@ export default function OrderForm({ category, initial, onSubmit, loading }: Prop
       {/* ── Payment info ── */}
       <div className="border-t border-slate-800 pt-5">
         <SectionHeading>{t('form.sectionPayment')}</SectionHeading>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Input label={`${t('form.price')} (${t('common.sar')})`} type="number" min="0" step="0.01" value={form.price} onChange={e => set('price', Number(e.target.value))} />
-          <Input label={`${t('form.paidAmount')} (${t('common.sar')})`} type="number" min="0" step="0.01" value={form.paidAmount} onChange={e => set('paidAmount', Number(e.target.value))} />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <Input
+            label={`${t('form.price')} (${t('common.sar')})`}
+            type="number" min="0" step="0.01"
+            placeholder={t('form.pricePlaceholder')}
+            value={form.price}
+            onChange={e => set('price', e.target.value === '' ? '' : Number(e.target.value))}
+            hint={t('common.optional')}
+          />
+          <Input
+            label={`${t('form.paidAmount')} (${t('common.sar')})`}
+            type="number" min="0" step="0.01"
+            placeholder={t('form.paidAmountPlaceholder')}
+            value={form.paidAmount}
+            onChange={e => set('paidAmount', e.target.value === '' ? '' : Number(e.target.value))}
+            hint={t('common.optional')}
+          />
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-slate-300">{t('form.remainingAmount')} ({t('common.sar')})</label>
             <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl px-3 py-2 text-blue-400 font-mono text-sm">
-              {Math.max(0, Number(form.price) - Number(form.paidAmount)).toFixed(2)}
+              {form.price === '' ? '—' : Math.max(0, Number(form.price) - (form.paidAmount === '' ? 0 : Number(form.paidAmount))).toFixed(2)}
             </div>
           </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <Select label={t('form.paymentMethod')} value={form.paymentMethod} onChange={e => set('paymentMethod', e.target.value as PaymentMethod | '')}>
+            <option value="">—</option>
+            <option value="cash">{t('pmethod.cash')}</option>
+            <option value="vodafoneCash">{t('pmethod.vodafoneCash')}</option>
+            <option value="instapay">{t('pmethod.instapay')}</option>
+            <option value="bankTransfer">{t('pmethod.bankTransfer')}</option>
+            <option value="notPaid">{t('pmethod.notPaid')}</option>
+            <option value="other">{t('pmethod.other')}</option>
+          </Select>
+          <Select
+            label={t('form.paymentStatus')}
+            value={form.paymentStatus}
+            onChange={e => { setPaymentStatusTouched(true); set('paymentStatus', e.target.value as PaymentStatus); }}
+          >
+            <option value="notSet">{t('pstatus.notSet')}</option>
+            <option value="notPaid">{t('pstatus.notPaid')}</option>
+            <option value="depositPaid">{t('pstatus.depositPaid')}</option>
+            <option value="partiallyPaid">{t('pstatus.partiallyPaid')}</option>
+            <option value="fullyPaid">{t('pstatus.fullyPaid')}</option>
+            <option value="remainingBalance">{t('pstatus.remainingBalance')}</option>
+          </Select>
+        </div>
+        <Input label={t('form.paymentNotes')} value={form.paymentNotes} onChange={e => set('paymentNotes', e.target.value)} hint={t('common.optional')} />
+      </div>
+
+      {/* ── Files & model links ── */}
+      <div className="border-t border-slate-800 pt-5">
+        <SectionHeading>{t('form.sectionLinks')}</SectionHeading>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Input label={t('form.makerWorldLink')} value={form.makerWorldLink} onChange={e => set('makerWorldLink', e.target.value)} hint={t('common.optional')} />
+          <Input label={t('form.driveLink')} value={form.driveLink} onChange={e => set('driveLink', e.target.value)} hint={t('common.optional')} />
+          <Input label={t('form.otherLink')} value={form.otherLink} onChange={e => set('otherLink', e.target.value)} hint={t('common.optional')} />
         </div>
       </div>
 

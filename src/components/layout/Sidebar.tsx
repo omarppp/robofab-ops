@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  LayoutDashboard, Lightbulb, CircleDot, ListOrdered, Layers, Users, Cpu,
+  LayoutDashboard, Lightbulb, CircleDot, Package, ListOrdered, Layers, Users, Cpu,
   BarChart3, Settings, X, CalendarDays, Clock, Zap,
 } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { href: '/dashboard',           key: 'nav.dashboard' as const,     icon: LayoutDashboard, group: 'main' },
   { href: '/orders/chandelier',   key: 'nav.chandelier' as const,    icon: Lightbulb,        group: 'orders' },
   { href: '/orders/holder',       key: 'nav.holder' as const,        icon: CircleDot,        group: 'orders' },
+  { href: '/orders/general',      key: 'nav.general' as const,       icon: Package,          group: 'orders' },
   { href: '/orders',              key: 'nav.allOrders' as const,     icon: ListOrdered,      group: 'orders' },
   { href: '/filament-stock',      key: 'nav.filamentStock' as const, icon: Layers,           group: 'manage' },
   { href: '/machines',            key: 'nav.machines' as const,      icon: Cpu,              group: 'manage' },

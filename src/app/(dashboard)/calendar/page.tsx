@@ -1,17 +1,19 @@
 'use client';
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight, Lightbulb, CircleDot, Printer } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Lightbulb, CircleDot, Package, Printer } from 'lucide-react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { useAllOrders } from '@/hooks/useOrders';
 import { useTranslation } from '@/hooks/useTranslation';
 import { orderHref, getOrderCategoryPath } from '@/utils/orderLinks';
 import type { OrderCategory } from '@/types';
+import type { TranslationKey } from '@/i18n/translations';
 
 const CATEGORY_CONFIG: Record<OrderCategory, { color: string; icon: typeof Lightbulb }> = {
-  chandelier: { color: 'bg-amber-500/10 border-amber-500/20 text-amber-400', icon: Lightbulb },
-  holder:     { color: 'bg-cyan-500/10 border-cyan-500/20 text-cyan-400',    icon: CircleDot },
+  chandelier: { color: 'bg-amber-500/10 border-amber-500/20 text-amber-400',   icon: Lightbulb },
+  holder:     { color: 'bg-cyan-500/10 border-cyan-500/20 text-cyan-400',      icon: CircleDot },
+  general:    { color: 'bg-violet-500/10 border-violet-500/20 text-violet-400', icon: Package },
 };
 
 const DAY_NAMES_AR = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
@@ -150,7 +152,7 @@ export default function CalendarPage() {
             return (
               <div key={cat} className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border ${cfg.color}`}>
                 <Icon className="w-3 h-3" />
-                <span>{t(cat === 'chandelier' ? 'cat.chandelier' : 'cat.holder')}</span>
+                <span>{t(`cat.${cat}` as TranslationKey)}</span>
               </div>
             );
           })}

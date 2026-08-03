@@ -1,6 +1,6 @@
 import type { Order, OrderCategory } from '@/types';
 
-const VALID_CATEGORIES: OrderCategory[] = ['chandelier', 'holder'];
+const VALID_CATEGORIES: OrderCategory[] = ['chandelier', 'holder', 'general'];
 
 // Safe default used only when an order's category is missing/invalid
 // (e.g. legacy data written before the category field existed). Chosen so

@@ -46,8 +46,8 @@ export function getGramsByMaterial(orders: Order[]): Record<string, number> {
   return result;
 }
 
-export function getGramsByCategory(orders: Order[]): { chandelier: number; holder: number } {
-  const result = { chandelier: 0, holder: 0 };
+export function getGramsByCategory(orders: Order[]): { chandelier: number; holder: number; general: number } {
+  const result = { chandelier: 0, holder: 0, general: 0 };
   for (const order of orders) {
     if (order.stage === 'cancelled') continue;
     const grams = getEffectiveGrams(order);

@@ -1,5 +1,25 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Environment Setup
+
+This app connects to Firebase, so it needs a `.env.local` file with your Firebase project's config. This file is gitignored — it is **not** included when you clone the repo, and it must never be committed.
+
+After cloning:
+
+1. Copy `.env.example` to `.env.local` in the project root.
+2. Fill in the values from **Firebase Console → Project Settings → General → Your apps → SDK setup and configuration**:
+
+   - `NEXT_PUBLIC_FIREBASE_API_KEY`
+   - `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`
+   - `NEXT_PUBLIC_FIREBASE_PROJECT_ID`
+   - `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`
+   - `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
+   - `NEXT_PUBLIC_FIREBASE_APP_ID`
+   - `NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID`
+3. Restart the dev server (or re-run the build) after adding/changing `.env.local`.
+
+If any of these are missing, the app throws a clear error naming exactly which variables are missing instead of a raw Firebase SDK error.
+
 ## Getting Started
 
 First, run the development server:

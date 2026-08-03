@@ -16,6 +16,7 @@ export const MACHINE_STATUS_LABELS: Record<MachineStatus, string> = {
 export const CATEGORY_LABELS: Record<OrderCategory, string> = {
   chandelier: 'أوردرات النجف',
   holder: 'أوردرات الهولدرات',
+  general: 'أوردرات عادية',
 };
 
 export const CLIENT_CATEGORY_LABELS: Record<ClientCategory, string> = {

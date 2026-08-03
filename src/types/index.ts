@@ -1,5 +1,7 @@
-export type OrderCategory = 'chandelier' | 'holder';
+export type OrderCategory = 'chandelier' | 'holder' | 'general';
 export type OrderPriority = 'low' | 'normal' | 'high' | 'urgent';
+export type PaymentMethod = 'cash' | 'vodafoneCash' | 'instapay' | 'bankTransfer' | 'notPaid' | 'other';
+export type PaymentStatus = 'notSet' | 'notPaid' | 'depositPaid' | 'partiallyPaid' | 'fullyPaid' | 'remainingBalance';
 export type MachineStatus = 'active' | 'maintenance' | 'offline';
 export type UserRole = 'owner' | 'admin' | 'staff' | 'viewer';
 export type ClientCategory = 'chandelier' | 'holder' | 'both' | 'general';
@@ -42,9 +44,15 @@ export interface Order {
   deliveryDate: string;
   stage: OrderStage;
   priority: OrderPriority;
-  price: number;
+  price: number | null;
   paidAmount: number;
-  remainingAmount: number;
+  remainingAmount: number | null;
+  paymentMethod?: PaymentMethod;
+  paymentStatus?: PaymentStatus;
+  paymentNotes?: string;
+  makerWorldLink?: string;
+  driveLink?: string;
+  otherLink?: string;
   notes: string;
   attachments?: string[];
   createdAt: string;
@@ -153,7 +161,7 @@ export interface MonthlyReport {
   totalRemaining: number;
   totalGrams: number;
   gramsByMachine: Record<string, number>;
-  gramsByCategory: { chandelier: number; holder: number };
+  gramsByCategory: { chandelier: number; holder: number; general: number };
   gramsByColor: Record<string, number>;
   gramsByMaterial: Record<string, number>;
   lateOrders: number;

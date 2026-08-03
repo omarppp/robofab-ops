@@ -11,7 +11,7 @@ import { sanitizeForFirestore } from '@/utils/sanitize';
 export async function createOrder(data: Omit<Order, 'id' | 'createdAt' | 'updatedAt'>) {
   const payload = sanitizeForFirestore({
     ...data,
-    remainingAmount: (data.price || 0) - (data.paidAmount || 0),
+    remainingAmount: data.price == null ? null : data.price - (data.paidAmount || 0),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   });
@@ -23,7 +23,7 @@ export async function updateOrder(id: string, data: Partial<Order>) {
   const ref = doc(db, 'orders', id);
   const raw: Record<string, unknown> = { ...data, updatedAt: new Date().toISOString() };
   if (data.price !== undefined || data.paidAmount !== undefined) {
-    raw.remainingAmount = (data.price ?? 0) - (data.paidAmount ?? 0);
+    raw.remainingAmount = data.price == null ? null : data.price - (data.paidAmount || 0);
   }
   await updateDoc(ref, sanitizeForFirestore(raw) as Record<string, unknown>);
 }

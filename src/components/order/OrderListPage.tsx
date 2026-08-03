@@ -101,6 +101,7 @@ export default function OrderListPage({ category, title, newHref, showCategoryFi
               <option value="">{t('form.category')}: {t('common.all')}</option>
               <option value="chandelier">{t('cat.chandelier')}</option>
               <option value="holder">{t('cat.holder')}</option>
+              <option value="general">{t('cat.general')}</option>
             </select>
           )}
           {hasFilters && (
